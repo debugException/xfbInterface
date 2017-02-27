@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="bankCardInfo" >
+  <resultMap id="BaseResultMap" class="cn.tyiti.xfb.bojo.BankCardInfo" >
+    <result column="id" property="id" jdbcType="INTEGER" />
+    <result column="user_id" property="userId" jdbcType="INTEGER" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="cardNo" property="cardNo" jdbcType="VARCHAR" />
+    <result column="opening_bank" property="openingBank" jdbcType="VARCHAR" />
+    <result column="yl_number" property="ylNumber" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="VARCHAR" />
+    <result column="verify_state" property="verifyState" jdbcType="VARCHAR" />
+    <result column="verify_userid" property="verifyUserid" jdbcType="INTEGER" />
+    <result column="verify_time" property="verifyTime" jdbcType="TIMESTAMP" />
+    <result column="submit_time" property="submitTime" jdbcType="TIMESTAMP" />
+    <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
+    <result column="remarks" property="remarks" jdbcType="VARCHAR" />
+    <result column="is_toPoints" property="isToPoints" jdbcType="VARCHAR" />
+  </resultMap>
+	
+		<insert id="saveBankCardInfo" parameterClass="cn.tyiti.xfb.bojo.BankCardInfo">
+			INSERT INTO t_bank_card_info 
+				<dynamic prepend="(" >
+			      <isNotNull prepend="," property="userId" >
+			        user_id
+			      </isNotNull>
+			      <isNotNull prepend="," property="name" >
+			        name
+			      </isNotNull>
+			      <isNotNull prepend="," property="cardNo" >
+			        card_no
+			      </isNotNull>
+			      <isNotNull prepend="," property="type" >
+			        type
+			      </isNotNull>
+			      <isNotNull prepend="," property="openingBank" >
+			        opening_bank
+			      </isNotNull>
+			      <isNotNull prepend="," property="ylNumber" >
+			        yl_number
+			      </isNotNull>
+			      ,verify_state,
+			      submit_time
+			      )
+			    </dynamic>
+			VALUES
+				<dynamic prepend="(" >
+			      <isNotNull prepend="," property="userId" >
+			        #userId:INTEGER#
+			      </isNotNull>
+			      <isNotNull prepend="," property="name" >
+			        #name:VARCHAR#
+			      </isNotNull>
+			      <isNotNull prepend="," property="cardNo" >
+			       	#cardNo:VARCHAR#
+			      </isNotNull>
+			      <isNotNull prepend="," property="type" >
+			        #type:VARCHAR#
+			      </isNotNull>
+			      <isNotNull prepend="," property="openingBank" >
+			        #openingBank:VARCHAR#
+			      </isNotNull>
+			      <isNotNull prepend="," property="ylNumber" >
+			        #ylNumber:VARCHAR#
+			      </isNotNull>
+					,'A3',
+					NOW()
+			      )
+			    </dynamic>
+		
+			  <selectKey resultClass="java.lang.Integer" keyProperty="id">
+			  		SELECT LAST_INSERT_ID() AS id
+			  </selectKey>
+		</insert>
+</sqlMap>

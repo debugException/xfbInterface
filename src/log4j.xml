@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+
+  <!-- 提示信息日志 -->
+	<appender name="INFOLOG"
+		class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="File" value="/var/nfs/xfbInterface/info.log" />
+		<param name="Encoding" value="UTF-8" />
+		<param name="Append" value="true" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern"
+				value="%d %-5p [%c] [%X{ID}] %m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="INFO" />
+			<param name="LevelMax" value="INFO" />
+		</filter>
+	</appender>
+
+	<!-- 异常信息日志 -->
+	<appender name="ERRORLOG"
+		class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="File" value="/var/nfs/xfbInterface/error.log" />
+		<param name="Encoding" value="UTF-8" />
+		<param name="Append" value="true" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern"
+				value="%d %-5p [%c] [%X{ID}] %m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="ERROR" />
+			<param name="LevelMax" value="ERROR" />
+		</filter>
+	</appender>
+
+
+	<!-- ibatis sql信息日志 -->
+	<appender name="SQLLOG"
+		class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="File" value="/var/nfs/xfbInterface/sql.log" />
+		<param name="Encoding" value="UTF-8" />
+		<param name="Append" value="true" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern"
+				value="%d %-5p [%c] [%X{ID}] %m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="DEBUG" />
+			<param name="LevelMax" value="DEBUG" />
+		</filter>
+	</appender>
+
+	<!-- 控制台信息日志 -->
+	<appender name="Console" class="org.apache.log4j.ConsoleAppender">
+		<param name="Encoding" value="UTF-8" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern"
+				value="%d %-5p [%c] [%X{ID}] %m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<!-- <param name="LevelMin" value="INFO" />
+			<param name="LevelMax" value="ERROR" /> -->
+			<param name="LevelMin" value="ERROR" />
+			<param name="LevelMax" value="ERROR" />
+		</filter>
+	</appender> 
+  
+    <!-- ibatis日志配置开始  author:Black date:2015-07-21 -->
+	<!-- SQL控制台信息日志 -->
+	<appender name="SQlConsole" class="org.apache.log4j.ConsoleAppender">
+		<param name="Encoding" value="UTF-8" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern"
+				value="%d %-5p [%c] [%X{ID}] %m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="DEBUG" />
+			<param name="LevelMax" value="DEBUG" />
+		</filter>
+	</appender> 
+	<logger name="com.ibatis" additivity="true">   
+	   <level value="DEBUG" />   
+	</logger>   
+	<logger name="java.sql.Connection" additivity="true">   
+	   <level value="DEBUG" />   
+	</logger>   
+	<logger name="java.sql.Statement" additivity="true">   
+	   <level value="DEBUG" />   
+	</logger>   
+	<logger name="java.sql.PreparedStatement" additivity="true">   
+	   <level value="DEBUG" />   
+	   <appender-ref ref="SQlConsole" />  
+	   <appender-ref ref="SQLLOG" /> 
+	</logger>   
+	<logger name="java.sql.ResultSet" additivity="true">   
+	   <level value="DEBUG" />   
+	   <appender-ref ref="SQlConsole" /> 
+	   <appender-ref ref="SQLLOG" />  
+	</logger>   
+    <!-- ibatis日志配置结束 -->
+    
+	<root>
+	    <appender-ref ref="Console" />
+		<appender-ref ref="INFOLOG" />
+		<appender-ref ref="ERRORLOG" />
+	</root>
+	
+</log4j:configuration>

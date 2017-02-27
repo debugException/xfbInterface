@@ -1,0 +1,9 @@
+#dev环境缓存服务器
+#memcached.hosts=192.168.71.129\:11211 192.168.71.129\:11212
+#memcached.connectionPoolSize=2
+#测试环境缓存服务器
+memcached.hosts=192.168.17.110\:11211 192.168.17.110\:11211
+memcached.connectionPoolSize=2
+#work缓存服务器
+#memcached.hosts=172.16.40.116\:11211 172.16.40.117\:11211 172.16.40.118\:11211 172.16.40.119\:11211
+#memcached.connectionPoolSize=4

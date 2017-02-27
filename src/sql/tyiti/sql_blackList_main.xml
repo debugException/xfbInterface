@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="t_blackList_main">
+
+	<select id="getUserInfoByUserId" parameterClass="java.lang.Integer" resultClass="cn.tyiti.xfb.bojo.UserInfo">
+		SELECT
+			u.id AS userId,
+			u.login_name AS loginName,
+			u.`status` AS userSatus,
+			u.real_name AS realName,
+			m.card_number AS idCode,
+			CONCAT(b.blacklist,b.qlblackinfo,b.sybadinfo,b.creditCode) AS blackCount
+		FROM
+			t_sys_user u
+		LEFT JOIN t_blacklist_main b ON u.id = b.userId
+		LEFT JOIN t_member_info m ON u.id = m.user_id
+		WHERE
+			u.id = #userId#
+	</select>
+	<select id="getUserInfo"  resultClass="cn.tyiti.xfb.bojo.UserInfo">
+		SELECT
+			u.id AS userId,
+			u.login_name AS loginName,
+			u.`status` AS userSatus,
+			u.real_name AS realName,
+			m.card_number AS idCode,
+			b.id AS blackCount
+		FROM
+			t_sys_user u
+		LEFT JOIN t_blacklist_main b ON u.id = b.userId
+		LEFT JOIN t_member_info m ON u.id = m.user_id
+		WHERE
+			m.credit_sum > 0
+		AND b.id is NULL	
+	</select>
+	<insert id="addData" parameterClass="cn.tyiti.xfb.bojo.UserInfo" >
+		INSERT INTO t_blacklist_main (
+			realName,
+			idcode,
+			userId,
+			loginName,
+			querytime
+		)
+		VALUES
+			(#realName#, #idCode#, #userId#, #loginName#,NOW());
+	</insert>
+	<insert id="batchInsert" parameterClass="java.util.List" >
+		<![CDATA[ 
+	        insert into t_blacklist_main(
+	        realName,
+			idcode,
+			userId,
+			loginName,
+			querytime) values 
+	    ]]>  
+	    <iterate conjunction=",">  
+	        <![CDATA[ 
+	            (#list[].realName#, #list[].idCode#,#list[].userId#,#list[].loginName#,NOW()) 
+	        ]]> 
+        </iterate> 
+	</insert>
+
+</sqlMap>
+

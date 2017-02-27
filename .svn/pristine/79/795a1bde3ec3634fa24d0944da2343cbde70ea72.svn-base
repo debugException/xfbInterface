@@ -1,0 +1,141 @@
+package cn.emagsoftware.xfb.controller;
+
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import cn.emagsoftware.frame.controller.BaseController;
+import cn.emagsoftware.utils.CommonUtils;
+import cn.emagsoftware.utils.Constant;
+import cn.emagsoftware.utils.json.JsonUtils;
+import cn.emagsoftware.xfb.dto.VersionRsp;
+
+/**
+ * 版本相关接口
+ * 
+ * @author Black
+ * @date 2015-07-16
+ *
+ */
+@Controller
+@RequestMapping(value = "/version")
+public class VersionController extends BaseController {
+
+    /**
+     * 获取版本接口
+     *
+     * @param model
+     * @return
+	 * @author Black
+	 * @date 2015-07-16
+     */
+    @RequestMapping(value = "/getVersion", method = {RequestMethod.GET, RequestMethod.POST})
+    public String getVersion(HttpServletRequest request, Map<String, String> model) {
+    	log.debug("--------获取版本号------");
+    	VersionRsp response = new VersionRsp();
+    	try {
+    		//手机系统类型
+    		String sysType = request.getHeader("sysType");
+    		//系统版本号
+    		String sysVersion = request.getHeader("sysVersion");
+    		//更新版本
+    		String androidVersion = CommonUtils.getPropertiesValue("config", "app.version.android.updated");
+    		String iosVersion = CommonUtils.getPropertiesValue("config", "app.version.ios.updated");
+    		//兼容版本
+    		String androidVersions = CommonUtils.getPropertiesValue("config", "app.version.android.current");
+    		String iosVersions =  CommonUtils.getPropertiesValue("config", "app.version.ios.current");
+    		
+    		String[] versionArr = null;
+    		String version = "";
+    		
+	    	if(StringUtils.isEmpty(sysType)||StringUtils.isEmpty(sysVersion)){  //强制更新
+	    		//设置版本号
+				response.setVersion(androidVersion);
+        		//成功设置
+				response.setCodeAndMsg(Constant.ERROR_CODE_9988, Constant.ERROR_MESSAGE
+	                    .get(Constant.ERROR_CODE_9988));
+			}else{
+				if (sysType.equals("Android")) {
+					response.setVersion(androidVersion); 
+					versionArr = androidVersions.split("#");
+					version = androidVersion;
+					//如果已经更新至最新版本，返回0
+					if(sysVersion.equals(version)){
+						response.setCodeAndMsg(Constant.SUCCESS_CODE,Constant.ERROR_MESSAGE
+			                    .get(Constant.SUCCESS_CODE));
+					}else {
+						//强制更新
+						response.setCodeAndMsg(Constant.ERROR_CODE_9988,Constant.ERROR_MESSAGE
+			                    .get(Constant.ERROR_CODE_9988));
+						for (String tmp:versionArr) {
+							if(tmp.equals(sysVersion)){   //提示更新
+								response.setCodeAndMsg(Constant.ERROR_CODE_9989,Constant.ERROR_MESSAGE
+					                    .get(Constant.ERROR_CODE_9989));
+								break;
+							}/*else { //强制更新
+								response.setCodeAndMsg(Constant.ERROR_CODE_9988,Constant.ERROR_MESSAGE
+					                    .get(Constant.ERROR_CODE_9988));
+							}*/
+						}
+					
+					}
+				}else if(sysType.equals("IOS")){
+					String[] versions = null;
+					versions = iosVersion.split("#");
+					response.setVersion(versions[1]);
+					versionArr = iosVersions.split("#");
+					if(sysVersion.equals(versions[0])||sysVersion.equals(versions[1])){
+						response.setCodeAndMsg(Constant.SUCCESS_CODE,Constant.ERROR_MESSAGE
+			                    .get(Constant.SUCCESS_CODE));
+					}else {
+						//强制更新
+						response.setCodeAndMsg(Constant.ERROR_CODE_9988,Constant.ERROR_MESSAGE
+			                    .get(Constant.ERROR_CODE_9988));
+						for (String tmp:versionArr) {
+							if(tmp.equals(sysVersion)){   //提示更新
+								response.setCodeAndMsg(Constant.ERROR_CODE_9989,Constant.ERROR_MESSAGE
+					                    .get(Constant.ERROR_CODE_9989));
+								break;
+							}/*else { //强制更新
+								response.setCodeAndMsg(Constant.ERROR_CODE_9988,Constant.ERROR_MESSAGE
+					                    .get(Constant.ERROR_CODE_9988));
+							}*/
+						}
+					
+					}
+				}
+			}
+            /*if(StringUtils.isNotBlank(version)) {
+    			response.setVersion(version);
+        		//成功设置
+                response.setCodeAndMsg(Constant.SUCCESS_CODE,Constant.ERROR_MESSAGE
+                        .get(Constant.SUCCESS_CODE));
+    		} else {
+    			//请求参数为空
+                response.setCodeAndMsg(Constant.ERROR_CODE_9997,Constant.ERROR_MESSAGE
+                        .get(Constant.ERROR_CODE_9997));
+    		}*/
+		} catch (Exception ex) {
+            log.error("VersionController.getVersion", ex);
+            response.setCodeAndMsg(Constant.ERROR_CODE_9999,Constant.ERROR_MESSAGE
+                    .get(Constant.ERROR_CODE_9999));
+		}
+    	
+    	try{
+	    	model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+	
+	        log.debug("VersionController.getVersion.response=="+JsonUtils.getJSONString(response));
+	    } catch (Exception ex) {
+	        log.error("VersionController.getVersion", ex);
+	    }
+    	
+    	return RET_JSP;
+        
+    }
+
+}

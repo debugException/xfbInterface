@@ -1,0 +1,38 @@
+package cn.tyiti.xfb.dao;
+
+import java.util.List;
+
+import cn.tyiti.xfb.bojo.ContactInfo;
+import cn.tyiti.xfb.common.IBaseDao;
+
+public interface ContactInfoDao extends IBaseDao {
+	/**
+	 * 增加联系人
+	 * @param contactInfo
+	 * @throws Exception 
+	 */
+	void addContactInfo(List<ContactInfo> contactInfoList) throws Exception;
+	/**
+	 * 删除联系人
+	 * @param userId
+	 * @throws Exception 
+	 */
+	void deleteContactInfo(Integer userId) throws Exception;
+	/**
+	 * 修改会员、职业/学生审核状态
+	 * @param userId
+	 */
+	void updateContactInfoTypeByUserId(Integer userId) throws Exception;
+	/**
+	 * 根据联系人每个id修改联系人信息
+	 * @param contactInfoList
+	 */
+	void updateContactInfoById(ContactInfo contactInfo) throws Exception;
+	/**
+	 * 根据用户id获取联系人信息
+	 * @param userId
+	 * @return
+	 */
+	List<ContactInfo> getContactInfoListByUserId(Integer userId);
+
+}

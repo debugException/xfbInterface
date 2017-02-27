@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="professioninfo" >
+  <!-- 职业信息 -->
+  <resultMap id="resultJobInfo" class="cn.tyiti.xfb.bojo.JobInfo" >
+    <result column="id" property="id" jdbcType="INTEGER" />
+    <result column="company_name" property="companyName" jdbcType="VARCHAR" />
+    <result column="company_nature" property="companyNature" jdbcType="VARCHAR" />
+    <result column="department" property="department" jdbcType="VARCHAR" />
+    <result column="post" property="post" jdbcType="VARCHAR" />
+    <result column="tel_number" property="telNumber" jdbcType="VARCHAR" />
+    <result column="province" property="province" jdbcType="VARCHAR" />
+    <result column="city" property="city" jdbcType="VARCHAR" />
+    <result column="county" property="county" jdbcType="VARCHAR" />
+    <result column="address" property="companyAddress" jdbcType="VARCHAR" />
+    <result column="annual_income" property="annualIncome" jdbcType="INTEGER" />
+    <result column="verify_state" property="verifyState" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <select id="getJobInfo" resultMap="resultJobInfo" parameterClass="cn.tyiti.xfb.bojo.JobInfo" >
+	  SELECT
+		ji.id,
+		ji.company_name,
+		ji.company_nature,
+		ji.department,
+		ji.post,
+		ji.tel_number,
+		ji.province,
+		ji.city,
+		ji.county,
+		ji.address,
+		ji.annual_income,
+		ji.verify_state
+	FROM t_job_info ji
+	WHERE
+		ji.user_id = #userId:INTEGER#
+  </select>
+  
+  <insert id="insertJobInfo" parameterClass="cn.tyiti.xfb.bojo.JobInfo" >
+    insert into t_job_info
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="userId" >
+        user_id
+      </isNotNull>
+      <isNotNull prepend="," property="companyName" >
+        company_name
+      </isNotNull>
+      <isNotNull prepend="," property="companyNature" >
+        company_nature
+      </isNotNull>
+      <isNotNull prepend="," property="department" >
+        department
+      </isNotNull>
+      <isNotNull prepend="," property="post" >
+        post
+      </isNotNull>
+      <isNotNull prepend="," property="telNumber" >
+        tel_number
+      </isNotNull>
+      <isNotNull prepend="," property="province" >
+        province
+      </isNotNull>
+      <isNotNull prepend="," property="city" >
+        city
+      </isNotNull>
+      <isNotNull prepend="," property="county" >
+        county
+      </isNotNull>
+      <isNotNull prepend="," property="companyAddress" >
+        address
+      </isNotNull>
+      <isNotNull prepend="," property="annualIncome" >
+        annual_income
+      </isNotNull>
+      <isNotNull prepend="," property="verifyState" >
+        verify_state
+      </isNotNull>
+      )
+    </dynamic>
+    values
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="userId" >
+        #userId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="companyName" >
+        #companyName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="companyNature" >
+        #companyNature:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="department" >
+        #department:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="post" >
+        #post:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="telNumber" >
+        #telNumber:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="province" >
+        #province:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="city" >
+        #city:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="county" >
+        #county:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="companyAddress" >
+        #companyAddress:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="annualIncome" >
+        #annualIncome:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="verifyState" >
+        #verifyState:VARCHAR#
+      </isNotNull>
+      )
+    </dynamic>
+  </insert>
+  
+  <update id="saveJobInfo" parameterClass="cn.tyiti.xfb.bojo.JobInfo" >
+    update t_job_info
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="companyName" >
+        company_name = #companyName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="companyNature" >
+        company_nature = #companyNature:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="department" >
+        department = #department:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="post" >
+        post = #post:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="telNumber" >
+        tel_number = #telNumber:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="province" >
+        province = #province:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="city" >
+        city = #city:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="county" >
+        county = #county:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="companyAddress" >
+        address = #companyAddress:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="annualIncome" >
+        annual_income = #annualIncome:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="verifyState" >
+        verify_state = #verifyState:VARCHAR#
+      </isNotNull>
+    </dynamic>
+    where id = #id:INTEGER#
+  </update>
+  
+  <!-- 学生信息 -->
+  <resultMap id="resultStudentInfo" class="cn.tyiti.xfb.bojo.StudentInfo" >
+    <result column="id" property="id" jdbcType="INTEGER" />
+    <result column="school_name" property="schoolName" jdbcType="VARCHAR" />
+    <result column="major" property="major" jdbcType="VARCHAR" />
+    <result column="grade" property="grade" jdbcType="VARCHAR" />
+    <result column="graduation_date" property="graduationDate" jdbcType="VARCHAR" />
+    <result column="verify_state" property="verifyState" jdbcType="VARCHAR" />
+  </resultMap>
+
+  <select id="getStudentInfo" resultMap="resultStudentInfo" parameterClass="cn.tyiti.xfb.bojo.StudentInfo" >
+	  SELECT
+		si.id,
+		si.school_name,
+		si.major,
+		si.grade,
+		si.graduation_date,
+		si.verify_state
+	FROM t_student_info si
+	WHERE
+		si.user_id = #userId:INTEGER#
+  </select>
+  
+  <insert id="insertStudentInfo" parameterClass="cn.tyiti.xfb.bojo.StudentInfo" >
+    insert into t_student_info
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="userId" >
+        user_id
+      </isNotNull>
+      <isNotNull prepend="," property="schoolName" >
+        school_name
+      </isNotNull>
+      <isNotNull prepend="," property="major" >
+        major
+      </isNotNull>
+      <isNotNull prepend="," property="grade" >
+        grade
+      </isNotNull>
+      <isNotNull prepend="," property="graduationDate" >
+        graduation_date
+      </isNotNull>
+      <isNotNull prepend="," property="verifyState" >
+        verify_state
+      </isNotNull>
+      )
+    </dynamic>
+    values
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="userId" >
+        #userId:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="schoolName" >
+        #schoolName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="major" >
+        #major:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="grade" >
+        #grade:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="graduationDate" >
+        #graduationDate:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="verifyState" >
+        #verifyState:VARCHAR#
+      </isNotNull>
+      )
+    </dynamic>
+  </insert>
+  
+  <update id="saveStudentInfo" parameterClass="cn.tyiti.xfb.bojo.StudentInfo" >
+    update t_student_info
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="schoolName" >
+        school_name = #schoolName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="major" >
+        major = #major:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="grade" >
+        grade = #grade:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="graduationDate" >
+        graduation_date = #graduationDate:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="verifyState" >
+        verify_state = #verifyState:VARCHAR#
+      </isNotNull>
+    </dynamic>
+    where id = #id:INTEGER#
+  </update>
+</sqlMap>

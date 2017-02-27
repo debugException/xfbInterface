@@ -1,0 +1,54 @@
+/**
+ * @(#)MemberInfoDao.java	1.0	2015-8-12
+ * Copyright 2014 [天尧], Inc. All rights reserved.
+ * Website: http://www.tyiti.com/
+ */
+package cn.tyiti.xfb.dao;
+
+import java.util.Map;
+
+import cn.tyiti.xfb.bojo.MemberInfo;
+import cn.tyiti.xfb.common.IBaseDao;
+
+/**
+ * 提升额度-获取个人信息/提升额度-提交个人信息Dao.
+ * 
+ * @version 1.0 2015-8-12
+ * @author Black
+ */
+public interface MemberInfoDao extends IBaseDao {
+	/**
+	 * 
+	 * 获取个人信息.
+	 * @author Black
+	 * @date 2015-8-12 下午4:55:18
+	 *
+	 * @param memberInfo
+	 * @return
+	 * @throws Exception
+	 */
+	MemberInfo getMemberInfo(MemberInfo memberInfo) throws Exception;
+	
+	/**
+	 * 
+	 * 提交个人信息.
+	 * @author Black
+	 * @date 2015-8-14 上午11:48:17
+	 *
+	 * @param memberInfo
+	 * @return
+	 * @throws Exception
+	 */
+	int saveMemberInfo(MemberInfo memberInfo) throws Exception;
+	
+	/**
+	 * 
+	 * 提交个人信息.
+	 * @author KELLEN
+	 * @date 2015-10-110
+	 * @param map
+	 * @return
+	 * @throws Exception
+	 */
+	int updateCredit(Map<String,Integer> map) throws Exception;
+}

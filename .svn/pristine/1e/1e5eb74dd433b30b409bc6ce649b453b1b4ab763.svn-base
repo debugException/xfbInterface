@@ -1,0 +1,804 @@
+package cn.emagsoftware.xfb.controller;
+
+import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import net.rubyeye.xmemcached.MemcachedClient;
+import net.sf.json.JSONObject;
+
+import org.apache.commons.beanutils.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import cn.emagsoftware.frame.bean.BaseRspBean;
+import cn.emagsoftware.frame.bean.XFBResponseBean;
+import cn.emagsoftware.frame.controller.BaseController;
+import cn.emagsoftware.frame.exception.BaseException;
+import cn.emagsoftware.utils.CommonUtils;
+import cn.emagsoftware.utils.Constant;
+import cn.emagsoftware.utils.DateUtil;
+import cn.emagsoftware.utils.ValidateUtils;
+import cn.emagsoftware.utils.json.JsonUtils;
+import cn.emagsoftware.xfb.constants.CommonConstant;
+import cn.emagsoftware.xfb.constants.OrderConstant;
+import cn.emagsoftware.xfb.dto.OrderConfirmRsp;
+import cn.emagsoftware.xfb.dto.OrderListRsp;
+import cn.emagsoftware.xfb.dto.OrderRep;
+import cn.emagsoftware.xfb.dto.OrderStagingRateRsp;
+import cn.emagsoftware.xfb.pojo.BillStage;
+import cn.emagsoftware.xfb.pojo.MemberInfo;
+import cn.emagsoftware.xfb.pojo.OrderInfo;
+import cn.emagsoftware.xfb.pojo.StageModel;
+import cn.emagsoftware.xfb.pojo.SysUser;
+import cn.emagsoftware.xfb.service.BillStageService;
+import cn.emagsoftware.xfb.service.MemberInfoService;
+import cn.emagsoftware.xfb.service.OrderService;
+import cn.emagsoftware.xfb.service.StageModelService;
+import cn.emagsoftware.xfb.service.SysUserService;
+import cn.tyiti.xfb.service.TradePasswordService;
+
+/**
+ * 订单相关接口
+ */
+@Controller
+@RequestMapping(value = "/order")
+public class OrderController extends BaseController {
+
+    @Autowired
+    private OrderService orderService;
+
+    @Autowired
+    private BillStageService billStageService;
+
+    @Autowired
+    private StageModelService stageModelService;
+
+    @Autowired
+    private MemberInfoService memberInfoService;
+
+    @Autowired
+    private MemcachedClient memcachedClient;
+
+    @Autowired
+    private SysUserService sysUserService;
+    
+	@Autowired
+	private TradePasswordService tradePasswordService;
+    
+    /*@Autowired
+    private WcfCallUtils wcfCallUtils;*/
+    private float formatFloat(float result){
+    	BigDecimal   baseAmountBig =   new   BigDecimal(result);
+        return baseAmountBig.setScale(2,   BigDecimal.ROUND_HALF_UP).floatValue();
+    }
+    
+    /**
+     * 获取订单列表
+     * @param model
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    @RequestMapping(value = "/orderList", method = {RequestMethod.GET, RequestMethod.POST})
+    public String orderList(Map<String, String> model) {
+
+    	  XFBResponseBean response = new XFBResponseBean();
+    	  Map<String, Object> data = new HashMap<String, Object>();
+        try {
+            OrderInfo orderInfo = this.getOrderInfo();
+            
+            if (orderInfo.getOwnerUserid()==null||orderInfo.getOwnerUserid()==0) {
+            	response.setResultCode(OrderConstant.ERROR_CODE_2202);
+            	response.setResultMessage(OrderConstant.ERROR_MESSAGE.get(OrderConstant.ERROR_CODE_2202));
+                model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+                return RET_JSP;
+            }
+//            Map<String, Object> map = orderService.orderListByUserid(orderInfo.getOwnerUserid(), orderInfo.getFlag(),orderInfo.getPage(), orderInfo.getPageSize());
+           
+            int startNum = orderInfo.getPage()==0?0:(orderInfo.getPage()-1)*orderInfo.getPageSize();
+            
+            Map<String, Object> map = orderService.orderListByUserid(orderInfo.getOwnerUserid(), orderInfo.getFlag(),startNum, orderInfo.getPageSize());
+            List<OrderInfo> orderInfoList = null == map.get("orderList") ? null : (List<OrderInfo>) map.get("orderList");
+            List<Object> orderDataList = new ArrayList<Object>();
+            for (OrderInfo order : orderInfoList) {
+				Map<String, Object> orderMap = new HashMap<String, Object>();
+				orderMap.put("id", CommonUtils.getToString(order.getId()));
+				orderMap.put("productName", order.getProductName());
+				orderMap.put("productPrice",  CommonUtils.getToString(order.getProductPrice()));
+				orderMap.put("shopName", CommonUtils.getToString(order.getShopName()));
+				orderMap.put("useLimit", CommonUtils.getToString(order.getUseLimit()));
+				orderMap.put("orderStatus", CommonUtils.getToString(order.getOrderStatus()));
+				orderMap.put("stagePlan", CommonUtils.getToString(order.getStagePlan()));
+				int orderState = order.getOrderStatus().intValue();
+				if (orderState == 2) {
+					Date dealTime = order.getDealTime();
+					if (dealTime != null) {
+						long currentTimeMillis = System.currentTimeMillis();
+						long returnFlag = DateUtil.getDay(currentTimeMillis, dealTime.getTime());
+						/*if (returnFlag>15) {
+							orderMap.put("returnButtonFlag", "1");//分期时间超过十五天
+						}else {
+							orderMap.put("returnButtonFlag", "3");//分期时间未超过十五天
+						}*/
+						//分期超时由原来15天 改为 7天
+						if (returnFlag>7) { 
+							orderMap.put("returnButtonFlag", "1");//分期时间超过7天
+						}else {
+							orderMap.put("returnButtonFlag", "3");//分期时间未超过7天
+						}
+					}else {
+						//分期时间为空 按超过15天处理 跟1.0版本对接时 分期时间可能为空
+						orderMap.put("returnButtonFlag", "1");
+						//throw new BaseException("4000", "确认分期时间为空");
+					}
+				} else {
+					orderMap.put("returnButtonFlag", "0"); //非待分期状态
+				}
+				
+				/*增加订单是否存在账单标识
+				0 存在账单数据
+				1 没有账单数据*/
+				String isBill = "0";
+				// 订单状态为退货中/已退货 且分期时间为空 表示未分期就已退货 所以返回没有账单数据
+				if ( (orderState == 3 || orderState == 4) && order.getDealTime()==null) {
+					isBill = "1";
+				}
+				orderMap.put("isBill",isBill);
+				
+				orderDataList.add(orderMap);
+			}
+            data.put("orderInfoList", orderDataList);
+            data.put("orderListSize", CommonUtils.getToString(CommonUtils.isEmpty(orderInfoList) ? 0 : orderInfoList.size()));
+            data.put("orderTotal", map.get("orderTotal"));
+            data.put("page",CommonUtils.getToString(orderInfo.getPage()));
+            response.setData(data);
+            response.setResultCode(Constant.SUCCESS_CODE);
+            response.setResultMessage(Constant.ERROR_MESSAGE.get(Constant.SUCCESS_CODE));
+
+        } catch (BaseException e) {
+        	response.setResultCode(e.getErrorCode());
+        	response.setResultMessage(e.getErrorMsg());
+        } catch (Exception e) {
+        	e.printStackTrace();
+            log.error("OrderController.orderList", e);
+            response.setResultCode(Constant.ERROR_CODE_9999);
+            response.setResultMessage(Constant.ERROR_MESSAGE
+                    .get(Constant.ERROR_CODE_9999));
+        }
+        try {
+            model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+            log.debug("OrderController.orderList.response=="+JsonUtils.getJSONString(response));
+        } catch (Exception e) {
+            log.error("OrderController.orderList", e);
+        }
+        return RET_JSP;
+    }
+
+    /**
+     * 无用
+     * @param model
+     * @param userId
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    @RequestMapping(value = "/orderListTest", method = {RequestMethod.GET, RequestMethod.POST})
+    @ResponseBody
+    public String orderListTest(Map<String, String> model, @RequestBody String userId) {
+        log.debug("OrderController.orderListTest,parameter[{userID,page,pageSize},{"
+                + request.getParameter("userId")
+                + ","
+                + request.getParameter(CommonConstant.REQUEST_PARAM_PAGE)
+                + ","
+                + request.getParameter(CommonConstant.REQUEST_PARAM_PAGESIZE)
+                + "}]");
+        OrderListRsp orderListRsp = new OrderListRsp();
+        try {
+            long[] page = CommonUtils.getSizeStartNumber(
+                    request.getParameter(CommonConstant.REQUEST_PARAM_PAGE),
+                    request.getParameter(CommonConstant.REQUEST_PARAM_PAGESIZE));
+            userId = request.getParameter("userId");
+            if (CommonUtils.isEmpty(userId) || !ValidateUtils.checkUserID(userId.trim())) {
+                orderListRsp.setResultCode(OrderConstant.ERROR_CODE_2202);
+                orderListRsp.setResultMessage(OrderConstant.ERROR_MESSAGE.get(OrderConstant.ERROR_CODE_2202));
+                model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(orderListRsp));
+                return JsonUtils.getJSONString(orderListRsp);
+            }
+            int idInt = Integer.valueOf(userId.trim());
+            Map<String, Object> map = orderService.orderListByUserid(idInt,"A1", page[0], page[1]);
+            List<OrderInfo> orderInfoList = null == map.get("orderList") ? null : (List<OrderInfo>) map.get("orderList");
+            orderListRsp.setOrderInfoList(orderInfoList);
+            orderListRsp.setOrderListSize(CommonUtils.isEmpty(orderInfoList) ? 0 : orderInfoList.size());
+            orderListRsp.setOrderTotal((Integer) map.get("orderTotal"));
+            orderListRsp.setPage(page[0]);
+            orderListRsp.setResultCode(Constant.SUCCESS_CODE);
+            orderListRsp.setResultMessage(Constant.ERROR_MESSAGE.get(Constant.SUCCESS_CODE));
+        } catch (BaseException e) {
+            orderListRsp.setResultCode(e.getErrorCode());
+            orderListRsp.setResultMessage(e.getErrorMsg());
+        } catch (Exception e) {
+            log.error("OrderController.orderListTest", e);
+            orderListRsp.setResultCode(Constant.ERROR_CODE_9999);
+            orderListRsp.setResultMessage(Constant.ERROR_MESSAGE
+                    .get(Constant.ERROR_CODE_9999));
+        }
+        try {
+            model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(orderListRsp));
+            log.debug("OrderController.orderList.response=="+JsonUtils.getJSONString(orderListRsp));
+        } catch (Exception e) {
+            log.error("OrderController.orderListTest", e);
+        }
+        return RET_JSP;
+    }
+
+    /**
+     * 商家创建订单
+     * 无用
+     * @param josnStr
+     * @return
+     * @throws UnsupportedEncodingException
+     */
+    @SuppressWarnings("unchecked")
+    @RequestMapping(value = "/createOrder", method = RequestMethod.POST)
+    @ResponseBody
+    public String createOrder(@RequestBody String josnStr) throws UnsupportedEncodingException {
+        JSONObject resultJsonobj = new JSONObject();
+        resultJsonobj.put("resultCode", "1001");
+        resultJsonobj.put("resultDes", "订单创建失败");
+        try {
+            String requestBodyStr = URLDecoder.decode(josnStr, "UTF-8");
+            if (requestBodyStr.length() > 0) {
+                requestBodyStr = requestBodyStr.substring(0, requestBodyStr.length() - 1);
+            }
+            log.debug("请求的用户信息为：" + requestBodyStr);
+            OrderInfo order = (OrderInfo) JSONObject.toBean(JSONObject.fromObject(requestBodyStr), OrderInfo.class);
+            Calendar calendar = Calendar.getInstance();
+            order.setCreateTime(calendar.getTime());
+            order.setUpdateTime(calendar.getTime());
+            orderService.createOrder(order);
+            resultJsonobj.put("resultCode", "0");
+            resultJsonobj.put("resultDes", "订单创建成功");
+        } catch (Exception ex) {
+            log.error("创建订单信息失败", ex);
+        }
+        return new String(resultJsonobj.toString().getBytes(), "ISO8859-1");
+    }
+
+    /**
+     * 订单分期
+     * @param model
+     * @return
+     * @throws UnsupportedEncodingException
+     */
+    @SuppressWarnings("unchecked")
+    @RequestMapping(value = "/orderStage", method = RequestMethod.POST)
+    public String orderStage(Map<String, String> model) throws UnsupportedEncodingException {
+        OrderRep response = new OrderRep();
+        response.setResultCode(OrderConstant.ERROR_CODE_1000);
+        Boolean checkFlag = true;
+        try {
+            OrderInfo orderInfo = this.getOrderInfo();
+
+            //获取订单信息
+            OrderInfo userOrderInfo = orderService.getOrderInfoById(orderInfo);
+			if (userOrderInfo == null) {
+				// 订单不存在
+				response.setResultCode(OrderConstant.ERROR_CODE_1003);
+				checkFlag = false;
+			} else if (userOrderInfo.getOwnerUserid().intValue() != orderInfo.getOwnerUserid().intValue()) {
+				// 订单的用户和当前用户信息不符
+				response.setResultCode(OrderConstant.ERROR_CODE_1004);
+				checkFlag = false;
+			} else if (userOrderInfo.getOrderStatus() != 10 && userOrderInfo.getOrderStatus() != 11 ) {
+				log.error("OrderController.orderStage,------订单已经被处理------userId："+orderInfo.getOwnerUserid()+" orderStatus:"+userOrderInfo.getOrderStatus());
+				// 订单状态不符
+				//response.setResultCode(OrderConstant.ERROR_CODE_1005);
+				checkFlag = false;
+			}else if(userOrderInfo.getVerifyState() != null){
+				if(OrderConstant.ORDER_VERIFY_STATUS_0 == userOrderInfo.getVerifyState().intValue()){
+					response.setResultCode(OrderConstant.ERROR_CODE_3001);
+					checkFlag = false;
+				}else if(OrderConstant.ORDER_VERIFY_STATUS_2 == userOrderInfo.getVerifyState().intValue()){
+					response.setResultCode(OrderConstant.ERROR_CODE_3002);
+					checkFlag = false;
+				}
+			}
+		
+
+            if(checkFlag){
+                SysUser requestUser = new SysUser();
+                requestUser.setId(userOrderInfo.getOwnerUserid());
+//                SysUser sysUser = sysUserService.getUserById(requestUser);
+//                String smsCode = request.getParameter("SMSCode");
+//                String sendCode ;
+//                try{
+//                    sendCode = memcachedClient.get(sysUser.getLoginName());
+//                }catch (Exception ex){
+//                    log.info("memcachedClient链接异常,添加短信验证码到MAP中"+ex.getMessage());
+//                    sendCode =  SysUserConstant.SMSCODE_MAP.get(sysUser.getLoginName());
+//                    SysUserConstant.SMSCODE_MAP.remove(sysUser.getLoginName());
+//                }
+//
+//                log.debug("订单分期发送的验证码为："+sendCode+";订单分期提交的验证码为"+smsCode);
+//                if(sendCode==null||sendCode.equals("")||!sendCode.equals(smsCode)){
+//                    response.setResultCode(OrderConstant.ERROR_CODE_1006);
+//                    checkFlag = false;
+//                }
+//          获取分期字典信息进行账单分期并修改订单状态和添加账单表
+                if(OrderConstant.ORDER_STAGE_RATE==null){
+//                  初始化费率模型
+                    try{
+                        List<StageModel> stageList = stageModelService.getStageList();
+                        if(stageList!=null&&stageList.size()>0){
+                            log.debug("费率模型为==="+ JsonUtils.getJSONString(stageList));
+                            Map<Integer,StageModel> map = new HashMap<Integer,StageModel>();
+
+                            for(int i=0;i<stageList.size();i++){
+                                StageModel StageModel = stageList.get(i);
+                                map.put(StageModel.getStageNum(),StageModel);
+                            }
+                            OrderConstant.ORDER_STAGE_RATE = map;
+                        }
+                    }catch (Exception ex){
+                        log.error("获取费率模型错误",ex);
+                    }
+                }
+
+                StageModel stageModel = OrderConstant.ORDER_STAGE_RATE.get(userOrderInfo.getStagePlan());
+                if(stageModel!=null){
+                    Float stagingRate = stageModel.getChargePercent();			//利率
+                    Float allAmount =  userOrderInfo.getUseLimit();				//总金额
+                    List<BillStage> billList = new ArrayList<BillStage>();
+
+
+                    Float baseAmount = allAmount/userOrderInfo.getStagePlan();		//每期需还款金额（含有误差）
+                    baseAmount = this.formatFloat(baseAmount);
+
+                    float endBaseAmount = allAmount-baseAmount*(userOrderInfo.getStagePlan()-1);//单独计算最后一期，修正误差
+                    endBaseAmount = this.formatFloat(endBaseAmount);
+
+                    
+                    Float stageAmount = allAmount*stagingRate/100;//获取每期手续费
+                    stageAmount = this.formatFloat(stageAmount);
+                    orderInfo.setAllStageAmount(stageAmount * userOrderInfo.getStagePlan());//获取总手续费
+
+                    for(int i=0;i<userOrderInfo.getStagePlan();i++){
+                        Calendar cal = Calendar.getInstance();
+                        cal.add(Calendar.MONTH, i + 1);
+                        BillStage billStage = new BillStage();
+                        String num ;
+                        if(i<9){
+                            num ="0"+(i+1);
+                        }else{
+                            num = ""+(i+1);
+                        }
+                        billStage.setBillNo(userOrderInfo.getOrderName() + num);
+                        //账单分期序号 第几期
+                        billStage.setDescription(num);
+                        if(i==userOrderInfo.getStagePlan()-1){	//如果是最后一期
+                            billStage.setBaseAmount(endBaseAmount);
+                            billStage.setStageAmount(stageAmount+endBaseAmount);			//每月需还款额（本金+利息）
+                        }else{
+                            billStage.setBaseAmount(baseAmount);
+                            billStage.setStageAmount(stageAmount+baseAmount);			//每月需还款额（本金+利息）
+                        }
+                        billStage.setChargeAmount(stageAmount);						//每月还款利息
+                        
+                        billStage.setLatestRepay(cal.getTime());
+                        billStage.setOrderId(orderInfo.getId());
+                        billList.add(billStage);
+                    }
+                    billStageService.batchCreateBill(billList);
+//                  订单分期状态修改为分期
+
+                    orderInfo.setOrderStatus(2);
+                    orderService.orderStage(orderInfo);
+                    //设置分期商城订单状态
+                    //wcfCallUtils.callSetOrderStatus(orderInfo.getId(), userOrderInfo.getOrderName(), orderInfo.getOrderStatus());
+                } else {
+                	log.error("分期模型为空");
+                	response.setResultCode(OrderConstant.ERROR_CODE_2222);
+                }
+            }
+
+        } catch (Exception ex) {
+            log.error("订单分期失败"+ex.getMessage(), ex);
+            response.setResultCode(OrderConstant.ERROR_CODE_2000);
+        }
+        try {
+            response.setResultMessage( OrderConstant.ERROR_MESSAGE.get(response.getResultCode()));
+            model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+            log.info("OrderController.orderStage.response=="+JsonUtils.getJSONString(response));
+        } catch (Exception e) {
+            log.error("CustomerController.login", e);
+        }
+        return RET_JSP;
+    }
+
+
+    public OrderInfo getOrderInfo(){
+        OrderInfo orderInfo = new OrderInfo();
+        try {
+            BeanUtils.populate(orderInfo, request.getParameterMap());
+            log.debug("<<<<<<<<<<<<<<<<<<requestParam>>>>>>>>>>>>>>>>>");
+            log.debug("请求的订单信息为："+JSONObject.fromObject(orderInfo).toString());
+        } catch (Exception ex) {
+            log.error("订单请求信息转换错误" + ex.getMessage(), ex);
+            orderInfo = null;
+        }
+        return orderInfo;
+    }
+
+    /**
+     * 订单分期税率
+     * 无用
+     * @param model
+     * @return
+     * @throws UnsupportedEncodingException
+     */
+    @SuppressWarnings("unchecked")
+    @RequestMapping(value = "/getStagingRate", method = RequestMethod.POST)
+    public String getStagingRate(Map<String, String> model){
+
+        OrderStagingRateRsp response = new OrderStagingRateRsp();
+        try{
+            OrderInfo orderInfo = this.getOrderInfo();
+
+            OrderInfo userOrderInfo = orderService.getOrderInfoById(orderInfo);
+
+            if(userOrderInfo.getOrderStatus()==1){
+//              待分期 返回分期税率信息
+                if(OrderConstant.ORDER_STAGE_RATE==null){
+//                  初始化费率模型
+                    try{
+                        List<StageModel> stageList = stageModelService.getStageList();
+                        if(stageList!=null&&stageList.size()>0){
+                            log.debug("费率模型为==="+ JsonUtils.getJSONString(stageList));
+                            Map<Integer,StageModel> map = new HashMap<Integer,StageModel>();
+
+                            for(int i=0;i<stageList.size();i++){
+                                StageModel StageModel = stageList.get(i);
+                                map.put(StageModel.getStageNum(),StageModel);
+                            }
+                            OrderConstant.ORDER_STAGE_RATE = map;
+                        }
+                    }catch (Exception ex){
+                        log.error("获取费率模型错误",ex);
+                    }
+                }
+                Map<Integer,StageModel> orderStageRate =  OrderConstant.ORDER_STAGE_RATE;
+
+
+                List<BillStage> stageRateList = new ArrayList<BillStage>();
+                for (Integer key : orderStageRate.keySet()) {
+                    BillStage bill = new BillStage();
+                    bill.setBillNo(key+"");
+                    bill.setBaseAmount(userOrderInfo.getUseLimit());
+
+                    Float stageAmount = orderStageRate.get(key).getChargePercent() * userOrderInfo.getUseLimit();
+                    stageAmount = this.formatFloat(stageAmount);
+                    bill.setStageAmount(stageAmount);
+
+                    Float chargeAmount =  orderStageRate.get(key).getChargePercent() * userOrderInfo.getUseLimit()/100;
+                    chargeAmount = this.formatFloat(chargeAmount);
+                    bill.setChargeAmount(chargeAmount);
+                    stageRateList.add(bill);
+                }
+//                userOrderInfo.setBillStageList(stageRateList);
+            }else if(userOrderInfo.getOrderStatus()==2){
+//                以分期返回账单详情
+                BillStage bill = new BillStage();
+                bill.setOrderId(userOrderInfo.getId());
+                Map<String, Object> map = billStageService.billList(bill, bill.getPage() * bill.getPageSize(), bill.getPageSize());
+//                userOrderInfo.setBillStageList((List<BillStage>) map.get("billList"));
+                response.setBillTotal((Integer) map.get("billTotal"));
+                response.setPage(bill.getPage());
+            }
+
+            response.setResultCode(OrderConstant.ERROR_CODE_1000);
+
+            response.setOrderInfo(userOrderInfo);
+        }catch (Exception ex){
+            log.error("获取订单税率错误",ex);
+            response.setResultCode(OrderConstant.ERROR_CODE_2000);
+        }
+        try {
+            response.setResultMessage( OrderConstant.ERROR_MESSAGE.get(response.getResultCode()));
+            model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+            log.debug("OrderController.getStagingRate.response=="+JsonUtils.getJSONString(response));
+        } catch (Exception e) {
+            log.error("CustomerController.login", e);
+        }
+        return RET_JSP;
+    }
+
+
+    /**
+     * 撤销订单 
+     * @param model
+     * @return
+     * @throws UnsupportedEncodingException
+     */
+    @SuppressWarnings("unchecked")
+    @RequestMapping(value = "/orderCancellation", method = RequestMethod.POST)
+    public String orderCancellation(Map<String, String> model) throws UnsupportedEncodingException {
+        OrderRep response = new OrderRep();
+        response.setResultCode(OrderConstant.ERROR_CODE_1000);
+        try{
+            OrderInfo orderInfo = this.getOrderInfo();
+            OrderInfo memberOrder = orderService.getOrderInfoById(orderInfo);
+            int status = memberOrder.getOrderStatus().intValue();
+            if (memberOrder.getDeleteFlag().intValue() == 1) {
+            	log.info("订单重复删除");
+            	response.setResultCode(OrderConstant.ERROR_CODE_2223);
+            }else {
+	            //撤销订单把状态置空
+	            orderInfo.setOrderStatus(null);
+	            orderInfo.setDeleteFlag(1);
+				if (status == OrderConstant.ORDER_STATUS_ONE
+						|| status == OrderConstant.ORDER_STATUS_FOUR
+						|| status == OrderConstant.ORDER_STATUS_FIVE
+						|| status == OrderConstant.ORDER_STATUS_SIX
+						|| status == OrderConstant.ORDER_STATUS_NINE) {
+					log.info("订单撤销校验成功 进行订单撤销");
+					orderService.orderCancellation(orderInfo);
+					if (status == 1) {
+						log.info("订单状态为待分期需要给用户返回额度");
+						MemberInfo memberInfo = new MemberInfo();
+						memberInfo.setSysUserid(memberOrder.getOwnerUserid());
+						memberInfo.setUseSum(memberOrder.getUseLimit());
+						memberInfoService.updateUseScore(memberInfo);
+					} else {
+						log.info("用户状态为已还清不需要给用户返回额度");
+					}
+	
+				} else {
+					log.info("其他状态不可删除");
+					response.setResultCode(OrderConstant.ERROR_CODE_2223);
+				}
+            }
+        }catch (Exception ex){
+            log.error("订单撤销失败",ex);
+            ex.printStackTrace();
+            response.setResultCode(OrderConstant.ERROR_CODE_2000);
+        }
+
+        try {
+            response.setResultMessage( OrderConstant.ERROR_MESSAGE.get(response.getResultCode()));
+            model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+            log.debug("OrderController.orderCancellation.response=="+JsonUtils.getJSONString(response));
+        } catch (Exception e) {
+            log.error("CustomerController.login", e);
+        }
+        return RET_JSP;
+    }
+
+    /**
+     *  已分期的订单退货
+     * @param model
+     * @return
+     * @throws UnsupportedEncodingException
+     */
+
+    @SuppressWarnings("unchecked")
+    @RequestMapping(value = "/returnGood", method = RequestMethod.POST)
+    public String returnGood(Map<String, String> model) throws UnsupportedEncodingException {
+        OrderRep response = new OrderRep();
+        response.setResultCode(OrderConstant.ERROR_CODE_1000);
+        Boolean checkFlag = true;
+        try{
+            OrderInfo orderInfo = this.getOrderInfo();
+
+            if(checkFlag){
+                //获取订单信息
+                OrderInfo userOrderInfo = orderService.getOrderInfoById(orderInfo);
+                //订单号长度 用于校验是否为微商城订单
+                int orderNameLength = userOrderInfo.getOrderName().length();
+                if(orderNameLength == 36) {//属于微商城订单 不作处理，给出用户提示
+                	response.setResultCode(OrderConstant.ERROR_CODE_2224);
+                } else {
+	//              订单退货校验成功 进行退货
+	                orderInfo.setOrderStatus(3);
+	                orderService.orderCancellation(orderInfo);
+                }
+                //设置分期商城订单状态
+                //wcfCallUtils.callSetOrderStatus(userOrderInfo.getId(), userOrderInfo.getOrderName(), userOrderInfo.getOrderStatus());
+//              分期账单状态修改 4
+                /*
+                                        退货时账单状态不做修改。（这里是后台审核）
+                BillStage billStage = new BillStage();
+                billStage.setBillStatus(4);
+                billStage.setOrderId(orderInfo.getId());
+                billStageService.updateBillByOrder(billStage);
+				*/
+                
+            }
+        }catch (Exception ex){
+            log.error("订单退货失败",ex);
+            response.setResultCode(OrderConstant.ERROR_CODE_2000);
+        }
+
+        try {
+            response.setResultMessage( OrderConstant.ERROR_MESSAGE.get(response.getResultCode()));
+            model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+            log.debug("OrderController.returnGood.response=="+JsonUtils.getJSONString(response));
+        } catch (Exception e) {
+            log.error("CustomerController.login", e);
+        }
+        return RET_JSP;
+    }
+    
+    /**
+     * 确认订单
+     * @param model
+     * @return
+     * @throws UnsupportedEncodingException
+     */
+    @SuppressWarnings("unchecked")
+    @RequestMapping(value = "/confirmOrder", method = RequestMethod.POST)
+    public String confirmOrder (Map<String, String> model) throws UnsupportedEncodingException {
+         Map<String, Object> data = new HashMap<String, Object>();
+         //成功标志
+         String resultCode = Constant.SUCCESS_CODE;
+         Boolean checkFlag = true;
+
+         OrderConfirmRsp response= new OrderConfirmRsp();
+         try {
+             OrderInfo orderInfo = this.getOrderInfo();
+
+             //获取订单信息
+             OrderInfo userOrderInfo = orderService.getOrderInfoById(orderInfo);
+             if (userOrderInfo == null) {
+				// 订单不存在
+				resultCode = OrderConstant.ERROR_CODE_1003;
+				checkFlag = false;
+			 } else if (userOrderInfo.getOwnerUserid().intValue() != orderInfo.getOwnerUserid().intValue()) {
+				// 订单的用户和当前用户信息不符
+				resultCode = OrderConstant.ERROR_CODE_1004;
+				checkFlag = false;
+			 } else if (userOrderInfo.getOrderStatus() != 0 && userOrderInfo.getOrderStatus() != 1  ) {
+				// 订单状态不符
+				resultCode = OrderConstant.ERROR_CODE_1005;
+				checkFlag = false;
+			 }
+
+             if(checkFlag){
+                 StageModel stageModel = stageModelService.getStageModelByStageNum(userOrderInfo.getStagePlan());
+                 if(stageModel!=null){
+                     Float stagingRate = stageModel.getChargePercent();			//利率
+                     Float allAmount =  userOrderInfo.getUseLimit();				//总金额
+//                     List<BillStage> billList = new ArrayList<BillStage>();
+
+
+                     Float baseAmount = allAmount/userOrderInfo.getStagePlan();		//本金
+                     baseAmount = this.formatFloat(baseAmount);
+                     Float percentAmount = allAmount*stagingRate/100;//服务费
+                     percentAmount = this.formatFloat(percentAmount);
+                     Float stageAmout =  baseAmount+percentAmount; //月供
+                     Float allStageAmout = stageAmout*userOrderInfo.getStagePlan(); //总还款额
+                     data.put("id", 			CommonUtils.getToString(userOrderInfo.getId()));
+                     data.put("useLimit", 		CommonUtils.getToString(allAmount));
+                     data.put("baseAmount", 	CommonUtils.getToString(baseAmount));
+                     data.put("stageAmount", 	CommonUtils.getToString(stageAmout));
+                     data.put("percentAmout", 	CommonUtils.getToString(percentAmount));
+                     data.put("allStageAmout", 	CommonUtils.getToString(allStageAmout));
+                     data.put("orderName", 		userOrderInfo.getOrderName());
+                     data.put("createTime", 	DateUtil.getDateString(userOrderInfo.getCreateTime(),"MM月dd日"));
+                     data.put("shopName", 		userOrderInfo.getShopName());
+                     data.put("productName", 	userOrderInfo.getProductName());
+                     data.put("price", 			CommonUtils.getToString(userOrderInfo.getProductPrice()));
+                     data.put("stagePlan", 		CommonUtils.getToString(userOrderInfo.getStagePlan()));
+
+                 }else {
+                	 resultCode = OrderConstant.ERROR_CODE_2222;
+                 }
+             }
+             
+             //设置订单详情数据
+             response.setData(data);
+             /*
+ 			 * 获取用户会员信息
+ 			 * date:20150917
+ 			 * author:Black
+ 			 */
+ 			cn.tyiti.xfb.bojo.MemberInfo memberInfo = new cn.tyiti.xfb.bojo.MemberInfo();
+ 			memberInfo.setUserId(this.getUserId());
+ 			memberInfo = tradePasswordService.getMemberInfo(memberInfo);
+ 			/*是否设置交易密码
+ 			0：已设置
+ 			1：未设置
+ 			 */
+ 			String isTradePassword = "1";
+ 			if(!StringUtils.isEmpty(memberInfo.getTradePassword())) {
+ 				isTradePassword = "0";
+ 			}
+ 			response.setIsTradePassword(isTradePassword);
+         } catch (Exception ex) {
+
+             log.error("获取订单分期失败"+ex.getMessage(), ex);
+             resultCode = OrderConstant.ERROR_CODE_2000;
+         }
+       //返回消息
+         String msg =  OrderConstant.ERROR_MESSAGE.get(resultCode);
+    	//设置返回消息
+    	response.setCodeAndMsg(resultCode,msg);
+			
+         //XFBResponseBean response = new XFBResponseBean(resultCode, msg, data);
+		 model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+         log.debug("OrderController.orderStage.response=="+JsonUtils.getJSONString(response));
+         return RET_JSP;
+    }
+
+    /**
+     * 
+     * 设置订单状态  调用商城wcf接口
+     * @author Black
+     * @date 2015-9-12 下午3:58:01
+     *
+     * @param model
+     * @return
+     */
+    /*@RequestMapping(value = "/setOrderStatus", method = RequestMethod.POST)
+    public String setOrderStatus (Map<String, String> model) {
+    	BaseRspBean response = new BaseRspBean();
+    	//订单Id
+    	Integer orderId = Integer.valueOf(request.getParameter("orderId"));
+    	//订单号
+    	String orderName = request.getParameter("orderName");
+    	//订单状态
+    	Integer orderStatus = Integer.valueOf(request.getParameter("orderStatus"));
+		wcfCallUtils.callSetOrderStatus(orderId, orderName, orderStatus);
+		//成功设置
+        response.setCodeAndMsg(Constant.SUCCESS_CODE,Constant.ERROR_MESSAGE
+                .get(Constant.SUCCESS_CODE));
+    	model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+        return RET_JSP;
+    }*/
+    
+    /**
+     * 
+     * 提交确认订单
+     * @author Black
+     * @date 2015-9-16 上午9:58:11
+     *
+     * @param model
+     * @return
+     */
+    @RequestMapping(value = "/submitConfirmOrder", method = RequestMethod.POST)
+    public String submitConfirmOrder (Map<String, String> model) {
+    	BaseRspBean response = new BaseRspBean();
+    	try{
+	    	//订单Id
+	    	Integer orderId = Integer.valueOf(request.getParameter("orderId"));
+	    	//获取用户Id
+	    	Integer userId = this.getUserId();
+	    	Map paramMap = new HashMap();
+	    	//订单Id
+	    	paramMap.put("orderId", orderId);
+	    	//订单状态  待商户交货
+	    	paramMap.put("orderStatus", 10);
+	    	orderService.updateOrderStatusByOrderId(paramMap);
+	    	//成功设置
+	    	response.setCodeAndMsg(Constant.SUCCESS_CODE,Constant.ERROR_MESSAGE
+                    .get(Constant.SUCCESS_CODE));
+    	} catch (Exception ex){
+    		log.error("提交确认订单失败", ex);
+    		response.setCodeAndMsg(Constant.ERROR_CODE_9999, Constant.ERROR_MESSAGE.get(Constant.ERROR_CODE_9999));
+    	}
+    	model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+    	return RET_JSP;
+    }
+    
+}
+
+

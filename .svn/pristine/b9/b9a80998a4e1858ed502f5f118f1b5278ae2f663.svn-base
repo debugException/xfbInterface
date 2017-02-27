@@ -1,0 +1,238 @@
+package cn.emagsoftware.xfb.controller;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+
+import cn.emagsoftware.common.JsonSerializer;
+import cn.emagsoftware.frame.controller.BaseController;
+import cn.emagsoftware.utils.CommonUtils;
+import cn.emagsoftware.xfb.pojo.LoanInfo;
+import cn.emagsoftware.xfb.pojo.LoanInfoBack;
+import cn.emagsoftware.xfb.pojo.Pkg3001;
+import cn.emagsoftware.xfb.pojo.Pkg3002;
+import cn.emagsoftware.xfb.pojo.Pkg4001;
+import cn.emagsoftware.xfb.pojo.Pkg4002;
+import cn.emagsoftware.xfb.pojo.PkgHeader;
+import cn.emagsoftware.xfb.service.CreditService;
+
+/**
+ * 91征信平台回调接口
+*      
+* 项目名称：xfbInterface_update     
+* 类名称：ReceiveController     
+* 类描述：     
+* 创建人：shenzhiqiang    
+* 创建时间：2015-11-27 下午6:22:17       
+* @version      
+*
+ */
+@Controller
+@RequestMapping(value = "/servlet")
+public class ReceiveController extends BaseController {
+
+	@Autowired
+    private CreditService creditService;
+	
+	//回调接口
+    @RequestMapping(value = "/receiveServlet", method = {RequestMethod.GET, RequestMethod.POST})
+    public void orderList(Map<String, String> model, HttpServletResponse response) {
+		try {
+			ByteArrayOutputStream swapStream = new ByteArrayOutputStream();  
+		    byte[] buf = new byte[4096];  
+		    int num = 0;  
+		    while ((num = request.getInputStream().read(buf,0,4096)) > 0) {  
+		        swapStream.write(buf, 0, num);  
+		    }  
+		    byte[] reqData = swapStream.toByteArray();
+		    swapStream.close();
+		    
+		    byte[] rspData = zxservice(reqData);
+		    response.getOutputStream().write(rspData);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public byte[] zxservice(byte[] postData){
+		PkgHeader reqPkg = new PkgHeader();	//请求报文
+		PkgHeader rspPkg = new PkgHeader();	//响应报文
+		
+		try {
+			String companyCode = CommonUtils.getPropertiesValue("config", "agency_code");
+			rspPkg.setCustNo(companyCode);	//配置服务器编号
+			rspPkg.setEncode(reqPkg.getEncode());	//设置编码
+			rspPkg.setEncryptType(reqPkg.getEncryptType());	//设置加密类型
+			rspPkg.setMsgType(reqPkg.getMsgType());	//设置消息类型
+			rspPkg.setVersion(reqPkg.getVersion());//设置版本
+			reqPkg.parseFormBytes(postData,reqPkg.getEncode());	//解析请求报文
+			rspPkg = distributeReq(reqPkg,rspPkg);	//进行消息派发处理
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			rspPkg.setRetCode("9999");
+			rspPkg.setRetMsg("系统异常消息处理失败");
+			rspPkg.setMsgBody("");
+		}
+		
+		return rspPkg.toPkgBytes("UTF-8");
+	}
+	
+	public PkgHeader distributeReq(PkgHeader reqPkg,PkgHeader rspPkg){
+		try {
+			int txnCode = Integer.parseInt(reqPkg.getTrxCode());
+			switch (txnCode) {
+				//客户端查询处理
+				case 3001:
+					{
+						rspPkg = doTask3001(reqPkg,rspPkg);
+						rspPkg.setTrxCode("4001");
+					}
+					break;
+				case 3002:
+				{
+					rspPkg = doTask3002(reqPkg,rspPkg);
+					rspPkg.setTrxCode("4002");
+				}
+					break;
+				default:
+				{
+					throw new Exception("未知的报文类型");
+				}
+			}
+		} 
+		catch (Exception e) {
+			e.printStackTrace();
+			rspPkg.setRetCode("9999");
+			rspPkg.setRetMsg("系统异常消息处理失败");
+			rspPkg.setMsgBody("");
+		}
+		return rspPkg;
+	}
+	
+	/**
+	 * 1.3	借贷信息查询反馈接口 
+	 * @param reqPkg
+	 * @param rspPkg
+	 * @return
+	 */
+	public PkgHeader doTask3002(PkgHeader reqPkg,PkgHeader rspPkg) {
+	
+		Pkg4002 pkg4002 = new Pkg4002();	//4002报文为空不需设置任何属性
+		try {
+			Pkg3002 pkg3002 = (Pkg3002) JsonSerializer.deserializer(reqPkg.getMsgBody(),new TypeReference<Pkg3002>(){});
+			
+			String trxNo = pkg3002.getTrxNo();	//发起查询时返回的编号用于做信息匹对
+			 List<LoanInfo> loanInfos = pkg3002.getLoanInfos();
+			 String userId= creditService.getUserIdByTrxNo(trxNo);
+			 String cardNumber = creditService.getCardNumberByTrxNo(trxNo);
+			 if (loanInfos.size()>0) {
+				 for(LoanInfo loanInfo : loanInfos){
+					 //TODO:此处将返回的结果信息进行保存处理
+      					 loanInfo.setTrxNo(trxNo);
+      					 loanInfo.setUserId(userId);
+      					 loanInfo.setCardNumber(cardNumber);
+					 creditService.addLoanInfo(loanInfo);
+				 }
+				 //正常情况
+				 rspPkg.setRetCode("0000");
+				 rspPkg.setRetMsg("成功接收到结果");
+				 Map<String, String> map = new HashMap<String, String>();
+				 map.put("cardNumber", cardNumber);
+				 map.put("modifyField", "creditCode");
+				// map.put("userId", userId);
+				 map.put("creditCode", trxNo);
+				 creditService.updateTrxNo(map);
+				 //creditService.updateTrxNo(map);
+			}else {
+				//正常情况
+				rspPkg.setRetCode("0000");
+				rspPkg.setRetMsg("成功接收到结果");
+			}
+		} 
+		catch (Exception e) {
+			e.printStackTrace();
+			rspPkg.setRetCode("9999");
+			rspPkg.setRetMsg("提交参数有误");
+			rspPkg.setMsgBody("");
+			try {
+				throw e;
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+		}
+		
+		String msgBodyJson = JsonSerializer.serializer(pkg4002);
+		rspPkg.setMsgBody(msgBodyJson);
+		
+		return rspPkg;
+	}
+	
+	/**
+	 * 1.2	借贷信息共享接口
+	 * @param reqPkg
+	 * @param rspPkg
+	 * @return
+	 */
+	@SuppressWarnings("unused")
+	public PkgHeader doTask3001(PkgHeader reqPkg,PkgHeader rspPkg) {
+		log.info("91征信平台回调。。。。。");
+		Pkg4001 pkg4001 = new Pkg4001();	
+		try {
+			Pkg3001 pkg3001 = (Pkg3001) JsonSerializer.deserializer(reqPkg.getMsgBody(),new TypeReference<Pkg3001>(){});
+			
+			String companyCode = pkg3001.getCompanyCode();	//发起查询的公司代码，具体指指令是由哪家公司请求 一般用作记录分析
+			String realName = pkg3001.getRealName();	//被查询人的姓名
+			String idCard = pkg3001.getIdCard();	//被查询人的身份证号
+			
+			List<LoanInfoBack> loanInfos = new ArrayList<LoanInfoBack>();
+			/*
+			 * TODO: 此处从数据库中查询到数据添加到loanInfos结果集中
+			 */
+			Map<String, String> map = new HashMap<String, String>();
+			map.put("realName", realName);
+			map.put("idCard", idCard);
+			try {
+				loanInfos = creditService.queryLoanInfos(map);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			pkg4001.setLoanInfos(loanInfos);
+			
+			//正常情况
+			rspPkg.setRetCode("0000");
+			rspPkg.setRetMsg("查询成功");
+		} 
+		catch (Exception e) {
+			e.printStackTrace();
+			rspPkg.setRetCode("9999");
+			rspPkg.setRetMsg("提交参数有误");
+			rspPkg.setMsgBody("");
+			try {
+				throw e;
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+		
+		String msgBodyJson = JsonSerializer.serializer(pkg4001);
+		rspPkg.setMsgBody(msgBodyJson);
+		
+		return rspPkg;
+	}
+	
+	
+}

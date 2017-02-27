@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="t_credit_creditInfo" >
+	
+	<!-- 保存查询信息 -->
+	<insert id="insert" parameterClass="cn.emagsoftware.xfb.pojo.CreditInfo">
+		INSERT INTO t_credit_info (
+						id,
+						userId,
+						userName,
+						cardNumber,
+						trxNo,
+						queryTime
+						)
+			VALUES
+				(
+					#id:INTEGER#,#userId:VARCHAR#,#userName:VARCHAR#,#cardNumber:VARCHAR#,#trxNo:VARCHAR#,now()
+				)	
+	</insert>
+	
+	<!-- 查询用户userId -->
+	<select id="getUserIdByTrxNo" parameterClass="java.lang.String" resultClass="java.lang.String">
+		SELECT
+			c.userId
+		FROM
+			t_credit_info c
+		WHERE
+			c.trxNo = #trxNo#
+	</select>
+	
+	<!-- 保存查询结果集 -->
+	<insert id="addLoanInfo" parameterClass="cn.emagsoftware.xfb.pojo.LoanInfo">
+			INSERT INTO t_loan_info 
+				<dynamic prepend="(" >
+				  <isNotNull prepend="," property="userId" >
+			        userId
+			      </isNotNull>
+			      <isNotNull prepend="," property="borrowType" >
+			        borrowType
+			      </isNotNull>
+			      <isNotNull prepend="," property="borrowState" >
+			        borrowState
+			      </isNotNull>
+			      <isNotNull prepend="," property="borrowAmount" >
+			        borrowAmount
+			      </isNotNull>
+			      <isNotNull prepend="," property="contractDate" >
+			        contractDate
+			      </isNotNull>
+			      <isNotNull prepend="," property="loanPeriod" >
+			        loanPeriod
+			      </isNotNull>
+			      <isNotNull prepend="," property="repayState" >
+			        repayState
+			      </isNotNull>
+			      <isNotNull prepend="," property="arrearsAmount" >
+			        arrearsAmount
+			      </isNotNull>
+			      <isNotNull prepend="," property="companyCode" >
+			        companyCode
+			      </isNotNull>
+			      <isNotNull prepend="," property="trxNo" >
+			        trxNo
+			      </isNotNull>
+			      )
+			    </dynamic>
+			VALUES
+				<dynamic prepend="(" >
+				 <isNotNull prepend="," property="userId" >
+			        #userId:VARCHAR#
+			      </isNotNull>
+			      <isNotNull prepend="," property="borrowType" >
+			        #borrowType:SMALLINT#
+			      </isNotNull>
+			      <isNotNull prepend="," property="borrowState" >
+			        #borrowState:SMALLINT#
+			      </isNotNull>
+			      <isNotNull prepend="," property="borrowAmount" >
+			       	#borrowAmount:SMALLINT#
+			      </isNotNull>
+			      <isNotNull prepend="," property="contractDate" >
+			        #contractDate:DATE#
+			      </isNotNull>
+			      <isNotNull prepend="," property="loanPeriod" >
+			        #loanPeriod:SMALLINT#
+			      </isNotNull>
+			      <isNotNull prepend="," property="repayState" >
+			        #repayState:SMALLINT#
+			      </isNotNull>
+			      <isNotNull prepend="," property="arrearsAmount" >
+			        #arrearsAmount:BIGINT#
+			      </isNotNull>
+			      <isNotNull prepend="," property="companyCode" >
+			        #companyCode:VARCHAR#
+			      </isNotNull>
+			      <isNotNull prepend="," property="trxNo" >
+			        #trxNo:VARCHAR#
+			      </isNotNull>
+
+			      )
+			    </dynamic>
+		</insert>
+		
+	<!-- 修改黑名单主表信息 -->
+	<update id="updateTrxNo" parameterClass="java.util.Map">
+		UPDATE t_blacklist_main
+		SET $modifyField$ = #creditCode#
+		where userId = #userId#
+	</update>
+</sqlMap>

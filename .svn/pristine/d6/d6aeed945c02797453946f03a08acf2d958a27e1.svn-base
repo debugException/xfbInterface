@@ -1,0 +1,73 @@
+package cn.emagsoftware.xfb.controller;
+
+import java.util.Map;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import cn.emagsoftware.frame.controller.BaseController;
+import cn.emagsoftware.utils.CommonUtils;
+import cn.emagsoftware.utils.Constant;
+import cn.emagsoftware.utils.json.JsonUtils;
+import cn.emagsoftware.xfb.dto.VersionRsp;
+
+/**
+ * 版本相关接口
+ * 
+ * @author Black
+ * @date 2015-07-16
+ *
+ */
+@Controller
+@RequestMapping(value = "/version")
+public class VersionController extends BaseController {
+
+    /**
+     * 获取版本接口
+     *
+     * @param model
+     * @return
+	 * @author Black
+	 * @date 2015-07-16
+     */
+    @RequestMapping(value = "/getVersion", method = {RequestMethod.GET, RequestMethod.POST})
+    public String getVersion(Map<String, String> model) {
+    	log.debug("--------获取版本号------");
+    	VersionRsp response = new VersionRsp();
+    	try {
+    		//版本号
+    		String version = CommonUtils.getPropertiesValue("config","app.version");
+    		response.setVersion(version);
+    		//成功设置
+            response.setCodeAndMsg(Constant.SUCCESS_CODE,Constant.ERROR_MESSAGE
+                    .get(Constant.SUCCESS_CODE));
+            /*if(StringUtils.isNotBlank(version)) {
+    			response.setVersion(version);
+        		//成功设置
+                response.setCodeAndMsg(Constant.SUCCESS_CODE,Constant.ERROR_MESSAGE
+                        .get(Constant.SUCCESS_CODE));
+    		} else {
+    			//请求参数为空
+                response.setCodeAndMsg(Constant.ERROR_CODE_9997,Constant.ERROR_MESSAGE
+                        .get(Constant.ERROR_CODE_9997));
+    		}*/
+		} catch (Exception ex) {
+            log.error("VersionController.getVersion", ex);
+            response.setCodeAndMsg(Constant.ERROR_CODE_9999,Constant.ERROR_MESSAGE
+                    .get(Constant.ERROR_CODE_9999));
+		}
+    	
+    	try{
+	    	model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+	
+	        log.debug("VersionController.getVersion.response=="+JsonUtils.getJSONString(response));
+	    } catch (Exception ex) {
+	        log.error("VersionController.getVersion", ex);
+	    }
+    	
+    	return RET_JSP;
+        
+    }
+
+}

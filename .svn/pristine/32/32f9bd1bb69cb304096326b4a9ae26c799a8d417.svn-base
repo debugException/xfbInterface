@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="t_bluecard_authinfo" >
+  <resultMap id="BaseResultMap" class="cn.emagsoftware.xfb.pojo.BluecardAuthinfo" >
+    <result column="id" property="id" jdbcType="INTEGER" />
+    <result column="sys_userid" property="sysUserid" jdbcType="INTEGER" />
+    <result column="credit_id" property="creditId" jdbcType="INTEGER" />
+    <result column="credit_score" property="creditScore" jdbcType="REAL" />
+    <result column="card_email" property="cardEmail" jdbcType="VARCHAR" />
+    <result column="card_login" property="cardLogin" jdbcType="VARCHAR" />
+    <result column="card_password" property="cardPassword" jdbcType="VARCHAR" />
+    <result column="card_name" property="cardName" jdbcType="VARCHAR" />
+    <result column="card_telnum" property="cardTelnum" jdbcType="VARCHAR" />
+    <result column="seasame_score" property="seasameScore" jdbcType="INTEGER" />
+    <result column="submit_time" property="submitTime" jdbcType="TIMESTAMP" />
+    <result column="image_path1" property="imagePath1" jdbcType="VARCHAR" />
+    <result column="image_path2" property="imagePath2" jdbcType="VARCHAR" />
+    <result column="image_path3" property="imagePath3" jdbcType="VARCHAR" />
+    <result column="is_verify" property="isVerify" jdbcType="INTEGER" />
+    <result column="operator" property="operator" jdbcType="INTEGER" />
+    <result column="operate_time" property="operateTime" jdbcType="TIMESTAMP" />
+    <result column="description" property="description" jdbcType="VARCHAR" />
+    <result column="verify_status" property="verifyStatus" jdbcType="INTEGER" />
+    <result column="email_password" property="emailPassword" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, sys_userid, credit_id, credit_score, card_email, card_login, card_password, card_name, 
+    card_telnum, seasame_score, submit_time, image_path1, image_path2, image_path3, is_verify, 
+    operator, operate_time, description, verify_status, email_password
+  </sql>
+
+    <sql id="Bean_Column_List" >
+        id,
+        sys_userid sysUserid,
+        credit_id creditId,
+        credit_score creditScore,
+        card_email cardEmail,
+        card_login cardLogin,
+        card_password cardPassword,
+        card_name cardName,
+        card_telnum cardTelnum,
+        seasame_score seasameScore,
+        submit_time submitTime,
+        image_path1 imagePath1,
+        image_path2 imagePath2,
+        image_path3 imagePath3,
+        is_verify isVerify,
+        operator ,
+        operate_time operateTime,
+        description,
+        verify_status verifyStatus,
+        email_password emailPassword
+    </sql>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterClass="cn.emagsoftware.xfb.pojo.BluecardAuthinfo" >
+    select 
+    <include refid="t_bluecard_authinfo.Base_Column_List" />
+    from t_bluecard_authinfo
+    where id = #id:INTEGER#
+  </select>
+  <delete id="deleteByPrimaryKey" parameterClass="cn.emagsoftware.xfb.pojo.BluecardAuthinfo" >
+    delete from t_bluecard_authinfo
+    where id = #id:INTEGER#
+  </delete>
+  <insert id="insert" parameterClass="cn.emagsoftware.xfb.pojo.BluecardAuthinfo" >
+    insert into t_bluecard_authinfo (id, sys_userid, credit_id, credit_score, 
+      card_email, card_login, card_password, card_name, 
+      card_telnum, seasame_score, submit_time, image_path1, 
+      image_path2, image_path3, is_verify, operator, 
+      operate_time, description, verify_status, email_password
+      )
+    values (#id:INTEGER#, #sysUserid:INTEGER#, #creditId:INTEGER#, #creditScore:REAL#,
+      #cardEmail:VARCHAR#, #cardLogin:VARCHAR#, #cardPassword:VARCHAR#, #cardName:VARCHAR#, 
+      #cardTelnum:VARCHAR#, #seasameScore:INTEGER#, now(), #imagePath1:VARCHAR#,
+      #imagePath2:VARCHAR#, #imagePath3:VARCHAR#,1, #operator:INTEGER#,
+      #operateTime:TIMESTAMP#, #description:VARCHAR#, 0, #emailPassword:VARCHAR#
+      )
+  </insert>
+  <insert id="insertSelective" parameterClass="cn.emagsoftware.xfb.pojo.BluecardAuthinfo" >
+    insert into t_bluecard_authinfo
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        id
+      </isNotNull>
+      <isNotNull prepend="," property="sysUserid" >
+        sys_userid
+      </isNotNull>
+      <isNotNull prepend="," property="creditId" >
+        credit_id
+      </isNotNull>
+      <isNotNull prepend="," property="creditScore" >
+        credit_score
+      </isNotNull>
+      <isNotNull prepend="," property="cardEmail" >
+        card_email
+      </isNotNull>
+      <isNotNull prepend="," property="cardLogin" >
+        card_login
+      </isNotNull>
+      <isNotNull prepend="," property="cardPassword" >
+        card_password
+      </isNotNull>
+      <isNotNull prepend="," property="cardName" >
+        card_name
+      </isNotNull>
+      <isNotNull prepend="," property="cardTelnum" >
+        card_telnum
+      </isNotNull>
+      <isNotNull prepend="," property="seasameScore" >
+        seasame_score
+      </isNotNull>
+      <isNotNull prepend="," property="submitTime" >
+        submit_time
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath1" >
+        image_path1
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath2" >
+        image_path2
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath3" >
+        image_path3
+      </isNotNull>
+      <isNotNull prepend="," property="isVerify" >
+        is_verify
+      </isNotNull>
+      <isNotNull prepend="," property="operator" >
+        operator
+      </isNotNull>
+      <isNotNull prepend="," property="operateTime" >
+        operate_time
+      </isNotNull>
+      <isNotNull prepend="," property="description" >
+        description
+      </isNotNull>
+      <isNotNull prepend="," property="verifyStatus" >
+        verify_status
+      </isNotNull>
+      <isNotNull prepend="," property="emailPassword" >
+        email_password
+      </isNotNull>
+      )
+    </dynamic>
+    values
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        #id:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="sysUserid" >
+        #sysUserid:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="creditId" >
+        #creditId:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="creditScore" >
+        #creditScore:REAL#
+      </isNotNull>
+      <isNotNull prepend="," property="cardEmail" >
+        #cardEmail:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="cardLogin" >
+        #cardLogin:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="cardPassword" >
+        #cardPassword:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="cardName" >
+        #cardName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="cardTelnum" >
+        #cardTelnum:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="seasameScore" >
+        #seasameScore:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="submitTime" >
+        #submitTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath1" >
+        #imagePath1:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath2" >
+        #imagePath2:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath3" >
+        #imagePath3:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="isVerify" >
+        #isVerify:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="operator" >
+        #operator:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="operateTime" >
+        #operateTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="description" >
+        #description:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="verifyStatus" >
+        #verifyStatus:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="emailPassword" >
+        #emailPassword:VARCHAR#
+      </isNotNull>
+      )
+    </dynamic>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterClass="cn.emagsoftware.xfb.pojo.BluecardAuthinfo" >
+    update t_bluecard_authinfo
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="sysUserid" >
+        sys_userid = #sysUserid:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="creditId" >
+        credit_id = #creditId:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="creditScore" >
+        credit_score = #creditScore:REAL#
+      </isNotNull>
+      <isNotNull prepend="," property="cardEmail" >
+        card_email = #cardEmail:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="cardLogin" >
+        card_login = #cardLogin:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="cardPassword" >
+        card_password = #cardPassword:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="cardName" >
+        card_name = #cardName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="cardTelnum" >
+        card_telnum = #cardTelnum:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="seasameScore" >
+        seasame_score = #seasameScore:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="submitTime" >
+        submit_time = #submitTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath1" >
+        image_path1 = #imagePath1:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath2" >
+        image_path2 = #imagePath2:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath3" >
+        image_path3 = #imagePath3:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="isVerify" >
+        is_verify = #isVerify:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="operator" >
+        operator = #operator:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="operateTime" >
+        operate_time = #operateTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="description" >
+        description = #description:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="verifyStatus" >
+        verify_status = #verifyStatus:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="emailPassword" >
+        email_password = #emailPassword:VARCHAR#
+      </isNotNull>
+    </dynamic>
+    where id = #id:INTEGER#
+  </update>
+  <update id="updateByPrimaryKey" parameterClass="cn.emagsoftware.xfb.pojo.BluecardAuthinfo" >
+    update t_bluecard_authinfo
+    set sys_userid = #sysUserid:INTEGER#,
+      credit_id = #creditId:INTEGER#,
+      credit_score = #creditScore:REAL#,
+      card_email = #cardEmail:VARCHAR#,
+      card_login = #cardLogin:VARCHAR#,
+      card_password = #cardPassword:VARCHAR#,
+      card_name = #cardName:VARCHAR#,
+      card_telnum = #cardTelnum:VARCHAR#,
+      seasame_score = #seasameScore:INTEGER#,
+      submit_time = now(),
+      image_path1 = #imagePath1:VARCHAR#,
+      image_path2 = #imagePath2:VARCHAR#,
+      image_path3 = #imagePath3:VARCHAR#,
+      is_verify = 1,
+      operator = #operator:INTEGER#,
+      operate_time = now(),
+      description = #description:VARCHAR#,
+      verify_status = 0,
+      email_password = #emailPassword:VARCHAR#
+    where id = #id:INTEGER#
+  </update>
+
+
+
+    <select id="getBluecardAuthinfoByUserid" resultClass="cn.emagsoftware.xfb.pojo.BluecardAuthinfo" parameterClass="cn.emagsoftware.xfb.pojo.BluecardAuthinfo" >
+        select
+        <include refid="t_bluecard_authinfo.Bean_Column_List" />
+        from t_bluecard_authinfo
+        where sys_userid = #sysUserid:INTEGER#
+    </select>
+
+
+
+
+    <update id="updateImagePathByUserId" parameterClass="cn.emagsoftware.xfb.pojo.BluecardAuthinfo" >
+        update t_bluecard_authinfo
+        <dynamic prepend="set" >
+            <isNotNull prepend="," property="imagePath1" >
+                image_path1 = #imagePath1:VARCHAR#
+            </isNotNull>
+            <isNotNull prepend="," property="imagePath2" >
+                image_path2 = #imagePath2:VARCHAR#
+            </isNotNull>
+            <isNotNull prepend="," property="imagePath3" >
+                image_path3 = #imagePath3:VARCHAR#
+            </isNotNull>
+        </dynamic>
+        where sys_userid =  #sysUserid:INTEGER#
+    </update>
+
+
+    <update id="bluecardAuthinfo" parameterClass="cn.emagsoftware.xfb.pojo.BluecardAuthinfo" >
+        update t_bluecard_authinfo
+        set
+        credit_id = #creditId:INTEGER#,
+        credit_score = #creditScore:REAL#,
+        card_email = #cardEmail:VARCHAR#,
+        card_login = #cardLogin:VARCHAR#,
+        card_password = #cardPassword:VARCHAR#,
+        card_name = #cardName:VARCHAR#,
+        card_telnum = #cardTelnum:VARCHAR#,
+        seasame_score = #seasameScore:INTEGER#,
+        submit_time = now(),
+        is_verify = 1,
+        description = #description:VARCHAR#,
+        verify_status = 0,
+        email_password = #emailPassword:VARCHAR#
+        where sys_userid =  #sysUserid:INTEGER#
+    </update>
+
+
+
+</sqlMap>

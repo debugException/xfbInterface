@@ -1,0 +1,31 @@
+body {background:#262c31; overflow:hidden;min-width:480px;}
+
+.detail_head {width:100%;height:90px;}	
+.detail_head_logo {float:left;margin:13px 0 0 20px;}	
+.detail_head_word {float:left;margin:15px 0 0 3%;width:225px;height:61px;}
+.detail_head_word h1 {font-size:20px;color:#999;font-weight:normal;margin-bottom:7px;}
+.detail_head_word p {font-size:14px;color:#5c5c5c;line-height:18px;}
+.head_button_download {width:95px;height:40px;background:url(../images/button_download.png);cursor:pointer;border:none;float:right;margin:25px 20px 0 0;font-size:18px;color:#2d96de;font-family:"微软雅黑";line-height:40px;text-align:center;}
+.video_block {width:100%;height:300px;cursor:pointer;text-align:center;}
+
+.detail_related {width:98.5%;height:auto;background:#e1e4e6;margin-top:10px;margin-left:auto;margin-right:auto;}
+.detail_related h1{width:100%;height:59px;border-bottom:1px solid #bababa;line-height:59px;font-weight:normal;}
+.detail_related h1 span {width:50%;height:56px;text-align:center;display:block;float:left;cursor:pointer;font-size:18px;color:#444;border-top:3px solid #e1e4e6;}
+.detail_related h1 span.related_selected {border-top:3px solid #2b99bb;color:#2d96de;}
+.detail_block {padding:10px;display:none;min-height:150px;}
+
+.video_list {width:100%;text-align:center;}
+.video_list li {width:200px;height:187px;float:left;padding:15px 0 0 25px;cursor:pointer;text-align:left;}
+.video_list li a {font-size:16px;color:#444;display:block;margin:11px 0 14px 0;}
+.video_list li p {font-size:14px;color:#999;}
+.btn_boxdown {width:460px;height:45px;background:url(../images/button_boxdownload.png);line-height:45px;text-align:center;font-size:18px;color:#2d96de;border:none;cursor:pointer;font-family:"微软雅黑";margin-top:15px;}
+.footer {margin:0 auto;width:460px;}
+.copyright {font-size:14px;color:#5c5c5c;font-family:Arial;display:block;margin:17px 0 16px 0;text-align:center;}
+
+.comment_block h1 {font-size:20px;color:#999;font-weight:normal;margin:21px 0 30px 24px;}
+.comment_block ul {margin:15px 0 0 24px;}
+.comment_block ul li p {font-size:16px;color:#999;}
+.comment_block ul li {margin-top:15px;}
+.comment_bottom {width:98%;height:27px;border-bottom:1px solid #454747;font-size:14px;color:#5c5c5c;display:block;margin-top:12px;}
+.comment_num {float:left;margin-left:10px;}
+.comment_time {float:right;margin-right:11px;}

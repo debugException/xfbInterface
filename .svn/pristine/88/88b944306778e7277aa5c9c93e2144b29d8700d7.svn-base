@@ -1,0 +1,109 @@
+#httpclient.so.timeout
+httpclient.so.timeout=21000
+#httpclient.so.timeout
+httpclient.connect.timeout=500000
+#user.session.timeout.seconds
+user.session.timeout.seconds=1800
+
+system.client.key = E2H92Z8900L99MAG
+
+resource.client.path = http://localhost:8000/imageResource
+inter.version = 0
+#版本号
+app.version = V1.1.0
+#.net wcf wsdl address
+wcf.wsdl.location = http://192.168.17.104:7280/XfbInternal/mex?wsdl
+wcf.key = 0A457C39B0A81CEFE3D9E30E99A00388
+
+picture.root.path=/var/nfs/xfbResources/pic_file
+
+#合作身份者ID，以2088开头由16位纯数字组成的字符串
+partner = 2088911356462803
+
+#商户的私钥
+key = k0z60epmvc7ig4ro4adx5t49pheilprs
+
+#字符编码格式 目前支持 gbk 或 utf-8
+input_charset = utf-8
+
+#签名方式 不需修改
+sign_type = 0001
+
+#客户端同一ip限制次数(正整数)
+
+clientip_limit =100
+
+#请求订单缓存大小
+trade_request_size =2
+
+#token缓存大小
+token_size = 2
+
+#服务器异步通知页面路径
+notify_url = http://localhost:8081/xfbInterface/notify_url.jsp
+
+#页面跳转同步通知页面路径
+return_url = http://127.0.0.1:8081/xfbInterface/call_back_url.jsp
+
+#请求出错时的通知页面路径
+error_notify_url = http://127.0.0.1:8081/xfbInterface/xxxxxx.jsp
+
+#卖家支付宝账户号,支付宝强烈建议使用
+seller_id = xfb20150408@163.com
+
+seller_email = xfb20150408@163.com
+
+#支付宝的通知IP是121.0.26.1与121.0.26.2,多个用|线分隔
+alipay_notice_ip =110.75.142.45 | 110.75.141.1|110.75.141.2|110.75.141.3|110.75.145.1|110.75.145.2|110.75.145.3
+
+#短信发送平台选择  0：旧短信通道 1：软维短信平台
+sms_send_flag = 1
+
+#android兼容版本（不包含更新版本）
+app.version.android.current=V1.1.4
+#android更新版本
+app.version.android.updated=V1.2.0
+#ios兼容版本（不包含更新版本）
+app.version.ios.current=V1.1.3
+#ios更新版本
+app.version.ios.updated=V1.1.4\#V1.2.0
+
+#同一个用户一天可发送的短信条数
+sms_user_send_number=15
+
+#微信支付商户相关资料
+#公众账号ID
+appid = wxce32f9f61b7bbda3 
+appsecret = 5cb29c4d35ced41d03d827f89855584d
+partnerId = 1268279101
+partnerkey = 5C5Qt9b3HdLP5qagY4qOcTLcq5jBrkxK
+
+#页面跳转同步通知页面路径
+#weChat_notify_url = http://223.223.183.46/xfbInterface2/weChatPay/notifyURL.do
+weChat_notify_url = http://223.223.177.107/xfbInterface/weChatPay/notifyURL.do
+#交易类型
+trade_type = APP
+
+#91征信公司机构代码
+agency_code = P2P3I9P0000101965
+credit_url = http://114.113.101.218/jyzx/zxservice.do
+
+
+
+#极光推送 
+appKey=7e824aeabb65dec7a78ccc48
+masterSecret=552b33675af98d99112c13ed
+
+#神州融黑名单信息验证
+#网络服务地址
+#webServiceUrl=http://credit1.rongsz.com:8081/internetfinance/webservice/creditInfoExt?wsdl
+webServiceUrl=http://121.41.87.97:8081/internetfinance/webservice/creditInfoExt?wsdl
+webServiceUserName = tyuser
+webServicepassword =tyadmin_\!@\#
+
+
+#易宝天创
+url_BankCard = http://api.ypcredit.com/auth/bankCard
+url_IndentityCard = http://api.ypcredit.com/auth/indentityCard
+appId_ybtc=444d1e1e-84f5-4946-8fa5-31ca3348ea8c
+tockenId_ybtc=cc9a5ec8-686e-4018-803e-e3c4821503f9

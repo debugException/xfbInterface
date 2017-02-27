@@ -1,0 +1,155 @@
+package cn.emagsoftware.xfb.constants;
+
+import cn.emagsoftware.xfb.pojo.StageModel;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * 订单配置
+ * 消息码 2001 - 2200
+ * 
+ */
+public class OrderConstant {
+
+
+	/** 已取消 */
+	public static final int ORDER_STATUS_NOUGHT = 0;
+	/** 待分期*/
+	public static final int ORDER_STATUS_ONE = 1;
+	/** 已分期 */
+	public static final int ORDER_STATUS_TWO = 2;
+	/** 退货中 */
+	public static final int ORDER_STATUS_THREE = 3;
+	/** 已退货 */
+	public static final int ORDER_STATUS_FOUR = 4;
+	/** 退款中 */
+	public static final int ORDER_STATUS_FIVE = 5;
+	/** 已退款 */
+	public static final int ORDER_STATUS_SIX = 6;
+	/** 已还清 */
+	public static final int ORDER_STATUS_NINE = 9;
+	
+	/** 订单审批中 */
+	public static final int ORDER_VERIFY_STATUS_0 = 0;
+	
+	/** 订单审批通过*/
+	public static final int ORDER_VERIFY_STATUS_1 = 1;
+	
+	/** 已还清审批未通过 */
+	public static final int ORDER_VERIFY_STATUS_2 = 2;
+	
+	/** type参数非法 */
+	public static final String ERROR_CODE_2201 = "2201";
+
+	/** ID参数非法 */
+	public static final String ERROR_CODE_2202 = "2202";
+
+	/** 当前播放视频的status不是商用，或已删除 */
+	public static final String ERROR_CODE_2203 = "2203";
+
+    /**
+     * 订单处理成功
+     */
+    public static final String ERROR_CODE_1000 = "0";
+
+    /**
+     * 订单创建失败 短信验证码和手机号码不符
+     */
+    public static final String ERROR_CODE_1001 = "1001";
+
+    /**
+     * 订单创建失败  该用户没有创建订单的权限
+     */
+    public static final String ERROR_CODE_1002 = "1002";
+
+
+    /**
+     * 订单创建失败  订单用户不存在
+     */
+    public static final String ERROR_CODE_1003 = "1003";
+
+
+    /**
+     * 订单分期失败 订单不存在
+     */
+    public static final String ERROR_CODE_1004 = "1004";
+
+
+    /**
+     * 订单分期失败 订单状态不符
+     */
+    public static final String ERROR_CODE_1005 = "1005";
+
+
+    /**
+     * 订单分期失败 分期期数不符合规范
+     */
+    public static final String ERROR_CODE_1007 = "1007";
+
+    /**
+     * 费率模型不存在
+     */
+    public static final String ERROR_CODE_2222 = "2222";
+    
+    /**
+     * 订单状态不可删除
+     */
+    public static final String ERROR_CODE_2223 = "2223";
+    
+    /**
+     * 订单为微商城订单，请联系客服处理
+     */
+    public static final String ERROR_CODE_2224 = "2224";
+    
+    /**
+     * 订单审核中
+     */
+    public static final String ERROR_CODE_3001 = "3001";
+    
+    /**
+     * 订单审核未通过
+     */
+    public static final String ERROR_CODE_3002 = "3002";
+    
+
+    /**
+     * 订单分期失败 订单退货中
+     */
+    public static final String ERROR_CODE_1006 = "1006";
+
+    public static final int MIN_STAGE_NUM = 1;
+
+    public static final int MAX_STAGE_NUM = 12;
+
+//  其它异常
+    public static final String ERROR_CODE_2000 = "2000";
+
+    public static  Map<Integer,StageModel> ORDER_STAGE_RATE ;
+
+    /** 返回码MAP */
+	public static final Map<String, String> ERROR_MESSAGE = new HashMap<String, String>();
+	static {
+		ERROR_MESSAGE.put(ERROR_CODE_2201, "type参数非法");
+		ERROR_MESSAGE.put(ERROR_CODE_2202, "ID参数非法");
+		ERROR_MESSAGE.put(ERROR_CODE_2203, "无此订单");
+        ERROR_MESSAGE.put(ERROR_CODE_2000, "订单处理异常");
+        ERROR_MESSAGE.put(ERROR_CODE_1000, "订单处理成功");
+        ERROR_MESSAGE.put(ERROR_CODE_1006, "订单分期短信验证码错误");
+        ERROR_MESSAGE.put(ERROR_CODE_2222, "没有对应的费率模型");
+        ERROR_MESSAGE.put(ERROR_CODE_2223, "订单状态不可删除");
+        ERROR_MESSAGE.put(ERROR_CODE_2224, "请您拨打客服电话400-6596688，申请退货");
+        
+        ERROR_MESSAGE.put(ERROR_CODE_1001, "短信验证码和手机号码不符");
+        ERROR_MESSAGE.put(ERROR_CODE_1002, "该用户没有创建订单的权限");
+        ERROR_MESSAGE.put(ERROR_CODE_1003, "订单用户不存在");
+        ERROR_MESSAGE.put(ERROR_CODE_1004, "订单不存在");
+        ERROR_MESSAGE.put(ERROR_CODE_1005, "订单状态不符");
+        ERROR_MESSAGE.put(ERROR_CODE_1007, "分期期数不符合规范");
+        
+        ERROR_MESSAGE.put(ERROR_CODE_3001, "订单审核中");
+        ERROR_MESSAGE.put(ERROR_CODE_3002, "订单审核未通过");
+	}
+
+
+}

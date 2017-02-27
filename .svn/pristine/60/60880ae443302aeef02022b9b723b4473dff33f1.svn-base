@@ -1,0 +1,842 @@
+package cn.emagsoftware.xfb.controller;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
+
+import net.rubyeye.xmemcached.MemcachedClient;
+import net.sf.json.JSONObject;
+
+import org.apache.commons.beanutils.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import cn.emagsoftware.frame.bean.BaseRspBean;
+import cn.emagsoftware.frame.controller.BaseController;
+import cn.emagsoftware.frame.exception.BaseException;
+import cn.emagsoftware.utils.CommonUtils;
+import cn.emagsoftware.utils.Constant;
+import cn.emagsoftware.utils.ValidateUtils;
+import cn.emagsoftware.utils.json.JsonUtils;
+import cn.emagsoftware.xfb.constants.AppConstants;
+import cn.emagsoftware.xfb.constants.CommonConstant;
+import cn.emagsoftware.xfb.constants.SysUserConstant;
+import cn.emagsoftware.xfb.dto.CustomerRegistRsp;
+import cn.emagsoftware.xfb.dto.CustomerRsp;
+import cn.emagsoftware.xfb.dto.ScoreListRsp;
+import cn.emagsoftware.xfb.dto.SysUserModifyPassRsp;
+import cn.emagsoftware.xfb.pojo.Customer;
+import cn.emagsoftware.xfb.pojo.EmailAuthinfo;
+import cn.emagsoftware.xfb.pojo.MemberInfo;
+import cn.emagsoftware.xfb.pojo.OrderInfo;
+import cn.emagsoftware.xfb.pojo.SysLog;
+import cn.emagsoftware.xfb.pojo.SysUser;
+import cn.emagsoftware.xfb.service.CreditModelService;
+import cn.emagsoftware.xfb.service.MemberInfoService;
+import cn.emagsoftware.xfb.service.OrderService;
+import cn.emagsoftware.xfb.service.SysUserService;
+import cn.emagsoftware.xfb.service.UserAuthinfoInfoService;
+import cn.tyiti.xfb.bojo.PromoteAmount;
+import cn.tyiti.xfb.service.PromoteAmountService;
+import cn.tyiti.xfb.utils.LogUtil;
+import cn.tyiti.xfb.utils.SmsExecutorUtil;
+
+/**
+ * 用户相关接口
+ */
+@Controller
+@RequestMapping(value = "/customer")
+public class CustomerController extends BaseController {
+
+    @Autowired
+    private MemcachedClient memcachedClient;
+
+    @Autowired
+    private MemberInfoService memberInfoService;
+
+    @Autowired
+    private SysUserService sysUserService;
+
+    @Autowired
+    private CreditModelService creditModelService;
+
+    @Autowired
+    private UserAuthinfoInfoService userAuthinfoInfoService;
+    
+    @Autowired
+	private PromoteAmountService promoteAmountService;
+    
+    @Autowired
+   	private OrderService orderService;
+
+    final static int MAX_CREDIT_COUNT=20;		//推荐人获取的最大推荐额度数
+    final static int USER_MEMBER_TYPE = 11;		//普通会员
+    final static int USER_COUNTRY_TYPE = 12;	//农村经济人
+   
+    /**
+     * 用户名，密码注册
+     *
+     * @param model
+     * @return
+     */
+    @RequestMapping(value = "/registration", method = {RequestMethod.GET, RequestMethod.POST})
+    public String registration(Map<String, String> model) {
+        CustomerRegistRsp response = new CustomerRegistRsp();
+        try {
+            String userName = request.getParameter("loginName");	//登录名
+            String userPwd =  request.getParameter("passWord");		//密码
+            String smsCode = request.getParameter("SMSCode");		//提交的验证码
+            String cardId = request.getParameter("cardId");
+            String recomCode =  request.getParameter("recomCode");	//推荐人号码
+            String realName = request.getParameter("realName");		//姓名
+            /*String userType = request.getParameter("type");		//会员类型
+            String province = request.getParameter("province");		//省	
+            String city = request.getParameter("city");		//市
+            String county = request.getParameter("county");		//县
+*/            String sendCode = "";									//发送的验证码
+            //发信验证码
+            try{
+                sendCode = memcachedClient.get(userName);
+                log.info("获取用户缓存校验码，用户名为:"+userName+"  验证码为"+sendCode);
+            }catch (Exception ex){
+                log.info("memcachedClient链接异常,添加短信验证码到MAP中"+ex.getMessage());
+                sendCode =  SysUserConstant.SMSCODE_MAP.get(userName);
+                SysUserConstant.SMSCODE_MAP.remove(userName);
+            }
+            log.info("注册发送的验证码为："+sendCode+";注册提交的验证码为"+smsCode);
+            
+            if(StringUtils.isEmpty(userName) || StringUtils.isEmpty(userPwd) || StringUtils.isEmpty(smsCode) 
+            		|| StringUtils.isEmpty(cardId) || StringUtils.isEmpty(recomCode) || StringUtils.isEmpty(realName)){
+            	response.setCodeAndMsg(CommonConstant.ERROR_CODE_1006, "注册失败，注册信息不完整");
+            }
+            
+            if(StringUtils.isEmpty(sendCode) || !sendCode.equals(smsCode)){
+            	response.setCodeAndMsg(CommonConstant.ERROR_CODE_1015,  CommonConstant.ERROR_MESSAGE.get(CommonConstant.ERROR_CODE_1015));
+            }else{
+                if(ValidateUtils.chekIdCard(cardId,-1)){
+                	//验证码校验完成 删除缓存中的校验码 基本数据校验通过不走数据查询之前就做验证码失效处理 author:Black date:2015-11-18
+                	memcachedClient.delete(userName);
+                	log.info("移除用户缓存校验码，用户名为："+userName);
+                    int age = ValidateUtils.getAgeByIdCard(cardId);
+                    int sex = ValidateUtils.getSexByIdCard(cardId);
+                    SysUser user = new SysUser();
+                    user.setRecomCode(recomCode);
+//                  获取推荐人信息
+                    SysUser recomUser = sysUserService.getPorUserByRecomCode(recomCode);
+                    if (recomUser==null) {
+                    	/*
+                         * 推荐人不存在返回错误信息为空 
+                         * author：Black 
+                         * date:2015-07-23
+                         */
+                    	response.setCodeAndMsg(CommonConstant.ERROR_CODE_1012,  CommonConstant.ERROR_MESSAGE.get(CommonConstant.ERROR_CODE_1012));
+                    }else{
+
+                    	//添加user表用户
+                        user.setMyCode(userName);
+                        user.setLoginName(userName);
+                        user.setRealName(realName);
+                        user.setPassWord(userPwd);
+
+                        MemberInfo memberInfo = new MemberInfo();
+                        memberInfo.setUseSum(0F);
+                        memberInfo.setCreditSum(0F);
+                        memberInfo.setIdNumber(cardId);
+                        memberInfo.setAge(age);
+                        memberInfo.setSex(sex);
+                        user.setMemberInfo(memberInfo);
+                        
+//                        SysUser sysUsers = sysUserService.getUserByLoinName(userName);
+                        Integer validUserInfo= sysUserService.getUserByLNCN(user);
+//                        MemberInfo regitMemberInfo = memberInfoService.getMemerByCardId(cardId);
+                        if(validUserInfo>0){
+                        	response.setCodeAndMsg(CommonConstant.ERROR_CODE_1007,"已存在的用户，无法注册");
+                        }else{
+                            sysUserService.addUser(user, memberInfo);
+                            response.setCustomerID(user.getId()+"");
+                            response.setCodeAndMsg(Constant.SUCCESS_CODE, "注册成功");
+                            //更新推荐人信息
+                            try {
+                            	sysUserService.updateRecomUser(recomUser);
+							} catch (Exception e) {
+								log.error("CustomerController.registration", e);
+								log.error("用户注册后更新推荐人"+recomUser.getLoginName()+"失败");
+							}
+                        }
+                    }
+                }else{
+                	response.setCodeAndMsg(CommonConstant.ERROR_CODE_1011, CommonConstant.ERROR_MESSAGE
+                            .get(CommonConstant.ERROR_CODE_1011));
+                }
+            }
+
+        } catch (BaseException e) {
+        	response.setCodeAndMsg(e.getErrorCode(), e.getErrorMsg());
+        } catch (Exception e) {
+        	e.printStackTrace();
+            log.error("CustomerController.registration", e);
+            response.setCodeAndMsg(Constant.ERROR_CODE_9999, Constant.ERROR_MESSAGE.get(Constant.ERROR_CODE_9999));
+        }
+        try {
+            model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+            log.debug("CustomerController.registration.response=="+JsonUtils.getJSONString(response));
+        } catch (Exception e) {
+            log.error("CustomerController.registration", e);
+        }
+        return RET_JSP;
+    }
+
+    /**
+     * 获取验证码
+     *
+     * @param model
+     * @return
+     */
+    @RequestMapping(value = "/handleVerifCode", method = {RequestMethod.GET, RequestMethod.POST})
+    public String handleVerifCode(Map<String, String> model) {
+        log.debug("CustomerController.handleVerifCode,parameter[{userPhone,idNumber},{"
+                + request.getParameter("userPhone")
+                + ","
+                + request.getParameter("idNumber") + "}]");
+        CustomerRegistRsp response = new CustomerRegistRsp();
+        try {
+            String userPhone = request.getParameter("userPhone");
+            //String smsCode = SysUserConstant.SMS("验证码："+verifCode+"，欢迎使用信分宝，开启信用新生活，么么哒",userPhone);
+            //4位随机校验码
+            String verifCode = "";
+            try{
+            	//增加同一个手机号一分钟之内无法发送多条短信的校验
+//            	int smsTime = (SysUserConstant.SMS_VALID_TIME/10);
+                //更改为4位随机校验码
+                verifCode = SysUserConstant.createRandom(true, 4);
+                if(memcachedClient.add(userPhone+"_MARK", SysUserConstant.SMS_VALID_TIME,"")) {
+                    log.info("用户号码为：" +userPhone + ";生成的短信校验码为：" + verifCode);
+                    String msg = verifCode+"（信分宝验证码，十分钟内有效），打死都不能告诉别人哦！感谢使用";
+                    //验证码放入缓存
+                    memcachedClient.set(userPhone, SysUserConstant.SMS_VALID_TIME, verifCode);
+                    SmsExecutorUtil.sendSMS(msg, userPhone);
+                    log.info("短信发送返回信息：" +msg);
+                } else {
+                	log.info("用户号码为：" +userPhone + "十分钟内发送多次，存在恶意发送嫌疑");
+                }
+            } catch (Exception ex){
+                log.info("memcachedClient链接异常,添加短信验证码到MAP中"+ex.getMessage());
+                SysUserConstant.SMSCODE_MAP.put(userPhone,verifCode);
+            }
+            //验证校验码是否为空
+            if (CommonUtils.isEmpty(verifCode)) {
+            	response.setCodeAndMsg(CommonConstant.ERROR_CODE_1006, CommonConstant.ERROR_MESSAGE
+                        .get(CommonConstant.ERROR_CODE_1006));
+            } else {
+//                response.setCustomerID(verifCode);
+//                System.out.println("========================="+userPhone+"========"+verifCode+"===============================");
+                response.setCodeAndMsg(Constant.SUCCESS_CODE, Constant.ERROR_MESSAGE.get(Constant.SUCCESS_CODE));
+            }
+
+        } catch (Exception e) {
+        	response.setCodeAndMsg(SysUserConstant.ERROR_CODE_2000, e.getMessage());
+        }
+        try {
+            model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+            log.debug("CustomerController.handleVerifCode.response=="+JsonUtils.getJSONString(response));
+        } catch (Exception e) {
+            log.error("CustomerController.handleVerifCode", e);
+        }
+        return RET_JSP;
+    }
+
+    /**
+     * 登陆，根据open_id,open_type判断数据库是否存在，存在则更新lastLoginTime,不存在则插入一条数据，
+     * registTime为当前时间，openNick如果不一样，需要修改数据库的nick,返回userToken
+     *
+     * @param model
+     * @return
+     */
+    @RequestMapping(value = "/login", method = {RequestMethod.GET,RequestMethod.POST})
+    public String login(Map<String, String> model) {
+        CustomerRsp response = new CustomerRsp();
+        Boolean checkFlag = true;
+        try {
+
+            if(checkFlag){
+                SysUser SysUserRep = this.getUser();
+
+                SysUser resultUser = sysUserService.userLogin(SysUserRep);
+
+                if (resultUser!=null) {
+//                    if(resultUser.getStatus()==null||resultUser.getStatus().intValue()==1){
+//                        response.setResultCode(CommonConstant.ERROR_CODE_1007);
+//                        response.setResultMessage("用户已经失效");
+//                     }else{
+                        MemberInfo memberInfo = memberInfoService.getMemerByUserid(resultUser.getId());
+
+                        SysUser recomUser = sysUserService.getUserByRecomCode(resultUser.getRecomCode());
+                        Customer customer = new  Customer();
+                        customer.setUserId(resultUser.getId());
+                        customer.setLoginName(resultUser.getLoginName());
+                        if(resultUser.getRealName()!=null){
+                            customer.setRealName(resultUser.getRealName());
+                        }
+                        if(memberInfo.getIdNumber()!=null){
+                            customer.setCardId(memberInfo.getIdNumber());
+                        }else{
+                            customer.setCardId("");
+                        }
+
+                        if(memberInfo.getUserType()!=null){
+                            customer.setUserType(memberInfo.getUserType());
+                        }
+                        if(resultUser.getRecomCode()!=null){
+                            customer.setRecomCode(resultUser.getRecomCode());
+                        }
+                        if(resultUser.getRecomNum()!=null){
+                            customer.setRecomNum(resultUser.getRecomNum());
+                        }
+                        if(recomUser!=null&&recomUser.getLoginName()!=null){
+                            customer.setRecomUser(recomUser.getLoginName());
+                        }
+
+
+                        String token = CommonConstant.getToken(request);
+
+                        customer.setUserToken(token);
+                        response.setResultCode(Constant.SUCCESS_CODE);
+                        response.setResultMessage(Constant.ERROR_MESSAGE.get(Constant.SUCCESS_CODE));
+                        response.setCustomer(customer);
+    ////                  添加用户登录信息到缓存数据库
+                        String userKey = Constant.CACHE_USER_KEY + customer.getUserId();
+                        //int sessionTimeout = AppConstants.DEFAULT_SESSION_TIMEOUT_SECONDS;
+                        /*memcachedClient.set(userKey, sessionTimeout,token);
+                        memcachedClient.set(token, sessionTimeout, customer);*/
+                        //永不过期
+                        memcachedClient.set(userKey, 0, resultUser);
+//                    }
+                }else{
+                    response.setResultCode(CommonConstant.ERROR_CODE_1013);
+                    response.setResultMessage(CommonConstant.ERROR_MESSAGE
+                            .get(CommonConstant.ERROR_CODE_1013));
+                }
+
+            }
+
+        } catch (BaseException e) {
+            response.setResultCode(e.getErrorCode());
+            response.setResultMessage(e.getErrorMsg());
+        } catch (Exception e) {
+            log.error("CustomerController.login", e);
+            response.setResultCode(Constant.ERROR_CODE_9999);
+            response.setResultMessage(Constant.ERROR_MESSAGE
+                    .get(Constant.ERROR_CODE_9999));
+        }
+        try {
+            model.put(Constant.RETURN_MESSAGE,
+                    JsonUtils.getJSONString(response));
+            log.debug("CustomerController.login.response=="+JsonUtils.getJSONString(response));
+        } catch (Exception e) {
+            log.error("CustomerController.login", e);
+        }
+        return RET_JSP;
+    }
+
+    private static float creditSum = 1000f, useSum = 500f;
+
+    /**
+     * 查询信用分，
+     *
+     * @param model
+     * @return
+     */
+    @RequestMapping(value = "/score", method = {RequestMethod.GET, RequestMethod.POST})
+    public String score(Map<String, String> model) {
+        log.debug("CustomerController.score,parameter[{userID},{" + request.getParameter("userID") + "}]");
+        ScoreListRsp response = new ScoreListRsp();
+        try{
+            //Integer userID = Integer.parseInt(request.getParameter("userID")==null?"0":request.getParameter("userID").toString());
+        	Integer userID = this.getUserId();
+            MemberInfo memberInfo = memberInfoService.getMemerByUserid(userID);
+            //审批退回数量
+            int returnNum = 0;
+            if(memberInfo!=null){
+                /*UserAuthinfo userAuthinfo = new UserAuthinfo();
+                userAuthinfo.setSysUserid(memberInfo.getSysUserid());
+                List<UserAuthinfo> list= memberInfoService.getUserAuthinfoList(userAuthinfo);
+                memberInfo.setUserAuthinfoList(list);*/
+            	response.setCreditSum(memberInfo.getCreditSum());
+            	response.setUseSum(memberInfo.getUseSum());
+            }else{
+                /*memberInfo = new MemberInfo();
+                memberInfo.setSysUserid(userID);
+                memberInfo.setCreditScore(0F);
+                memberInfo.setCreditSum(0F);
+                memberInfo.setUseSum(0F);*/
+            	response.setCreditSum(0F);
+            	response.setUseSum(0F);
+            }
+            PromoteAmount stateInfo = promoteAmountService.getStateInfo(userID);
+            if("A2".equals(stateInfo.getMemberInfo().getState())
+            		||"A2".equals(stateInfo.getStudentInfo().getState())
+            		||"A2".equals(stateInfo.getJobInfo().getState())
+            		||"A2".equals(stateInfo.getContactsInfo().getState())){
+            	returnNum ++;
+            }
+            
+            if("A2".equals(stateInfo.getCreditCard().getState())){
+            	returnNum ++;
+            }
+            
+            if("A2".equals(stateInfo.getDepositCard().getState())){
+            	returnNum ++;
+            }
+            
+            if("A2".equals(stateInfo.getDrivingLicense().getState())){
+            	returnNum ++;
+            }
+            //审批退回数量
+            response.setReturnNum(String.valueOf(returnNum));
+            LogUtil.info("CustomerController.score-----userId:"+userID+"审批退回数量:"+returnNum);
+           
+            //待确认订单数量
+            int confirmOrderNum = orderService.selectByUserIdCount(userID);
+            response.setConfirmOrderNum(String.valueOf(confirmOrderNum));
+            LogUtil.info("CustomerController.score-----userId:"+userID+"待确认订单数量:"+confirmOrderNum);
+            
+            //七日内待还订单数量
+//            Map<String, Object> map = orderService.orderListByUserid(userID,"A2",0,1000);
+//            List<OrderInfo> orderInfoList = null == map.get("orderList") ? null : (List<OrderInfo>) map.get("orderList");
+//            response.settSevenBillNum(String.valueOf(orderInfoList == null?0:orderInfoList.size()));
+//            LogUtil.info("CustomerController.score-----userId:"+userID+"7日待还订单数量:"+orderInfoList == null?0:orderInfoList.size());
+            
+            response.setCodeAndMsg(Constant.SUCCESS_CODE, Constant.ERROR_MESSAGE.get(Constant.SUCCESS_CODE));
+        }catch (Exception ex){
+        	response.setCodeAndMsg(Constant.ERROR_CODE_9995, Constant.ERROR_MESSAGE.get(Constant.ERROR_CODE_9995));
+            log.error("获取用户信用分信息错误",ex);
+        }
+        
+        model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+        log.debug("CustomerController.score.response=="+JsonUtils.getJSONString(response));
+        
+        return RET_JSP;
+    }
+
+
+    /**
+     * 根据request获取请求的用户参数
+     * @return
+     */
+
+    public SysUser getUser() {
+        SysUser user = new SysUser();
+        try {
+            BeanUtils.populate(user, request.getParameterMap());
+//            if(user.getPassWord()!=null&&!"".equals(user.getPassWord())){
+//                user.setPassWord(MD5Util.getMD5String(user.getPassWord()));
+//            }
+//            if(user.getNewPassWord()!=null&&!"".equals(user.getNewPassWord())){
+//                user.setNewPassWord(MD5Util.getMD5String(user.getNewPassWord()));
+//            }
+//
+//            if(user.getOldPassword()!=null&&!"".equals(user.getOldPassword())){
+//                user.setOldPassword(MD5Util.getMD5String(user.getOldPassword()));
+//            }
+            log.debug("请求的用户信息为："+ JSONObject.fromObject(user).toString());
+        } catch (Exception ex) {
+            log.error("用户请求信息转换错误" + ex.getMessage(), ex);
+            user = null;
+        }
+        return user;
+    }
+
+
+    /**
+     * 根据用户ID 和 原密码信息进行密码更改
+     * @param model
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    @RequestMapping(value = "/changeInfo", method = RequestMethod.POST)
+    public String modifyPassword(Map<String, String> model){
+        SysUserModifyPassRsp response = new SysUserModifyPassRsp();
+        try {
+
+            SysUser user = this.getUser();
+
+            SysUser resultUser = sysUserService.getUserByLoinName(user.getLoginName());
+            resultUser.setNewPassWord(user.getPassWord());
+
+            if(resultUser!=null&&resultUser.getPassWord().equals(user.getOldPassword())){
+//                密码正确 进行密码修改
+                resultUser.setNewPassWord(user.getNewPassWord());
+                sysUserService.updatePassWord(resultUser);
+                response.setCodeAndMsg(SysUserConstant.ERROR_CODE_1000,SysUserConstant.ERROR_MESSAGE.get(SysUserConstant.ERROR_CODE_1000));
+            }else{
+            	response.setCodeAndMsg(SysUserConstant.ERROR_CODE_1008,SysUserConstant.ERROR_MESSAGE.get(SysUserConstant.ERROR_CODE_1008));
+            }
+        } catch (Exception e) {
+            log.error("CustomerController.login", e);
+            response.setCodeAndMsg(SysUserConstant.ERROR_CODE_2000, e.getMessage());
+        }
+
+        try {
+            model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+            log.debug("CustomerController.modifyPassword.response=="+JsonUtils.getJSONString(response));
+        } catch (Exception e) {
+            log.error("CustomerController.modifyPassword", e);
+        }
+        return RET_JSP;
+    }
+
+
+
+    /**
+     * 根据用户ID 修改用户名和用户邮箱
+     * @param model
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    @RequestMapping(value = "/changeUser", method = RequestMethod.POST)
+    public String modifyUserInfo(Map<String, String> model){
+        log.debug("CustomerController.modifyUserInfo,parameter[{userId,realName,email},{"
+                + request.getParameter("userId") + "," +
+                request.getParameter("realName")+","+
+                request.getParameter("email")+","+
+                "}]");
+        SysUserModifyPassRsp response = new SysUserModifyPassRsp();
+        try {
+            Integer userId = Integer.parseInt(request.getParameter("userId")==null?"0":request.getParameter("userId").toString());
+            String realName = request.getParameter("realName");
+            String email =   request.getParameter("email");
+            if(userId!=0){
+                if(realName!=null&&!"".equals(realName.trim())){
+//                    用户姓名修改
+                    SysUser sysUser = new SysUser();
+                    sysUser.setId(userId);
+                    sysUser.setRealName(realName);
+                    sysUserService.updateRealNameByUsrId(sysUser);
+                }
+
+                if(email!=null&&!"".equals(email.trim())){
+//                  用户邮箱修改
+                    EmailAuthinfo emailAuthinfo = new EmailAuthinfo();
+                    emailAuthinfo.setSysUserid(userId);
+                    emailAuthinfo.setCompanyEmail(email);
+                    userAuthinfoInfoService.updateUserEmail(emailAuthinfo);
+                }
+                response.setCodeAndMsg(SysUserConstant.ERROR_CODE_1000, SysUserConstant.ERROR_MESSAGE.get(SysUserConstant.ERROR_CODE_1000));
+            }
+
+
+
+        } catch (Exception e) {
+            log.error("CustomerController.login", e);
+            response.setCodeAndMsg(SysUserConstant.ERROR_CODE_2000, SysUserConstant.ERROR_MESSAGE.get(SysUserConstant.ERROR_CODE_2000));
+        }
+
+        try {
+            model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+            log.debug("CustomerController.modifyPassword.response=="+JsonUtils.getJSONString(response));
+        } catch (Exception e) {
+            log.error("CustomerController.modifyPassword", e);
+        }
+        return RET_JSP;
+    }
+    
+    /**
+     * 
+     * 更新用户状态
+     * @author Black
+     * @date 2015-8-5 下午2:29:38
+     *
+     * @param model
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    @RequestMapping(value = "/updateUserState", method = RequestMethod.POST)
+    public String updateUserState(Map<String, String> model){
+        BaseRspBean response = new BaseRspBean();
+        //登录名 手机号
+        String loginName = request.getParameter("loginName");
+        //0:启用1:停用
+        String state = request.getParameter("state");
+        try {
+        	SysUser sysUser = new SysUser();
+        	sysUser.setLoginName(loginName);
+        	sysUser.setStatus(Integer.valueOf(state));
+        	sysUserService.updateStatusByLoginName(sysUser);
+        	response.setCodeAndMsg(Constant.SUCCESS_CODE, Constant.ERROR_MESSAGE.get(Constant.SUCCESS_CODE));
+        } catch (Exception ex) {
+            log.error("CustomerController.modifyUserState", ex);
+            response.setCodeAndMsg(SysUserConstant.ERROR_CODE_2000, SysUserConstant.ERROR_MESSAGE.get(SysUserConstant.ERROR_CODE_2000));
+        }
+        model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+        log.debug("CustomerController.modifyUserState.response=="+JsonUtils.getJSONString(response));
+        return RET_JSP;
+    }
+    
+    
+    /**
+     * 找回密码第一步，校验手机号和身份证是否正确
+     * @param loginName 手机好;cardId 身份证
+     * @return
+     */
+    @RequestMapping(value = "/valid4FindPassword", method = RequestMethod.POST)
+    public String valid4FindPassword(Map<String, String> model){
+    	SysUserModifyPassRsp response = new SysUserModifyPassRsp();
+    	String loginName = request.getParameter("loginName");
+    	String cardId = request.getParameter("cardId");
+    	try {
+    		SysUser user = sysUserService.getUserByLoginCard(new SysUser(loginName,cardId));
+    		if(user==null){
+    			response.setCodeAndMsg(Constant.ERROR_CODE_9996,"手机号与身份证不匹配");
+    		}else{
+    			response.setCodeAndMsg(Constant.SUCCESS_CODE,Constant.ERROR_MESSAGE.get(Constant.SUCCESS_CODE));
+    		}
+//			SysUser resultUser = sysUserService.getUserByLoinName(loginName);
+//			if(resultUser != null){
+//				MemberInfo memberInfo = memberInfoService.getMemerByUserid(resultUser.getId());
+//				if(memberInfo != null){
+//					if(cardId.equalsIgnoreCase(memberInfo.getIdNumber())){//校验身份证是否正确
+//						response.setCodeAndMsg(SysUserConstant.ERROR_CODE_1000, 
+//								SysUserConstant.ERROR_MESSAGE.get(SysUserConstant.ERROR_CODE_1000));
+//							response.setLoginName(loginName);
+//					}else{
+//						response.setCodeAndMsg(SysUserConstant.ERROR_CODE_2000, "身份证号码错误，无法进行密码找回");
+//					}
+//				}else{
+//					response.setCodeAndMsg(SysUserConstant.ERROR_CODE_2000,"获取member信息失败");
+//				}
+//			}else{
+//				response.setCodeAndMsg(SysUserConstant.ERROR_CODE_2000,"用户名错误或者不存在");
+//			}
+		} catch (Exception e) {
+			log.error("valid4FindPassword：根据loginName查找用户失败！"+e);
+			response.setCodeAndMsg(SysUserConstant.ERROR_CODE_2000,"根据loginName查询用户信息失败");
+		}
+    	 try {
+             model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+         } catch (Exception e) {
+             log.error("CustomerController.valid4FindPassword", e);
+         }
+    	return RET_JSP;
+    }
+    
+    /**
+     * 找回密码第二步，校验验证码
+     * @param loginName 手机好;SMSCode 验证码
+     * @return
+     */
+    @RequestMapping(value = "/validAuth", method = RequestMethod.POST)
+    public String validAuth(Map<String, String> model){
+    	SysUserModifyPassRsp response = new SysUserModifyPassRsp();
+    	String loginName = request.getParameter("loginName");
+    	String SMSCode = request.getParameter("SMSCode");		//前台发送的验证码
+    	if(this.validSMSCode(loginName, SMSCode)){
+    		response.setCodeAndMsg(SysUserConstant.ERROR_CODE_1000,
+					SysUserConstant.ERROR_MESSAGE.get(SysUserConstant.ERROR_CODE_1000));
+    		response.setLoginName(loginName);
+    	}else{
+        	response.setCodeAndMsg(Constant.ERROR_CODE_9996,"验证码不正确");
+    	}
+    	try {
+            model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+        } catch (Exception e) {
+            log.error("CustomerController.validAuth", e);
+        }
+    	return RET_JSP;
+    }
+    
+    /**
+     * 找回密码第三步，重新设置密码
+     * @param loginName 手机好;SMSCode 验证码
+     * @return
+     */
+    @RequestMapping(value = "/resetPassword", method = RequestMethod.POST)
+    public String resetPassword(Map<String, String> model){
+    	SysUserModifyPassRsp response = new SysUserModifyPassRsp();
+    	String loginName = request.getParameter("loginName");
+    	String password = request.getParameter("password");
+    	String cardId = request.getParameter("cardId");
+    	String SMSCode = request.getParameter("SMSCode");		//前台发送的验证码
+    	try {
+    		if(this.validSMSCode(loginName, SMSCode)){
+    			memcachedClient.delete(loginName);
+    			SysUser user = sysUserService.getUserByLoginCard(new SysUser(loginName,cardId));
+    			if(user != null){
+    				// && !password.equalsIgnoreCase(user.getPassWord())
+    	    		if(password!=null && user!=null){
+    		    		user.setNewPassWord(password);
+    		            sysUserService.updatePassWord(user);
+    		            response.setCodeAndMsg(SysUserConstant.ERROR_CODE_1000,
+    							SysUserConstant.ERROR_MESSAGE.get(SysUserConstant.ERROR_CODE_1000));
+    	    		} else {
+    	    			response.setCodeAndMsg(SysUserConstant.ERROR_CODE_2000,
+    	    					SysUserConstant.ERROR_MESSAGE.get(SysUserConstant.ERROR_CODE_2000));
+    	    		}
+    			}else{
+    				response.setCodeAndMsg(Constant.ERROR_CODE_9996,"手机号或者身份证不匹配");
+    			}
+        	}else{
+            	response.setCodeAndMsg(Constant.ERROR_CODE_9997,"验证码不正确");
+        	}
+        } catch (Exception e) {
+        	log.error("CustomerController.resetPassword:修改密码失败"+e);
+            response.setCodeAndMsg(SysUserConstant.ERROR_CODE_2000,
+					SysUserConstant.ERROR_MESSAGE.get(SysUserConstant.ERROR_CODE_2000));
+        }
+    	try {
+    		model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+		} catch (Exception e) {
+			 log.error("CustomerController.resetPassword", e);
+		}
+    	return RET_JSP;
+    }
+
+    /**
+     * 根据用户ID 和 原密码信息进行密码更改
+     * @param model
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    @RequestMapping(value = "/retrievePassword", method = RequestMethod.POST)
+    public String retrievePassword(Map<String, String> model){
+        SysUserModifyPassRsp response = new SysUserModifyPassRsp();
+        try {
+
+            SysUser user = this.getUser();
+            String smsCode = request.getParameter("SMSCode");
+
+            String sendCode ;
+            String cardId = request.getParameter("cardId");
+            try{
+                sendCode = memcachedClient.get(user.getLoginName());
+            }catch (Exception ex){
+                log.info("memcachedClient链接异常,添加短信验证码到MAP中"+ex.getMessage());
+                sendCode =  SysUserConstant.SMSCODE_MAP.get(user.getLoginName());
+                SysUserConstant.SMSCODE_MAP.remove(user.getLoginName());
+            }
+            if(sendCode==null||sendCode.equals("")||!sendCode.equals(smsCode)){
+            	response.setCodeAndMsg(CommonConstant.ERROR_CODE_1006, "密码找回失败，验证码不正确");
+            }else{
+                SysUser resultUser = sysUserService.getUserByLoinName(user.getLoginName());
+                if(resultUser!=null){
+                    MemberInfo memberInfo = memberInfoService.getMemerByUserid(resultUser.getId());
+                    if(memberInfo.getIdNumber().equals(cardId)){
+                        resultUser.setNewPassWord(user.getPassWord());
+                        sysUserService.updatePassWord(resultUser);
+                        response.setCodeAndMsg(SysUserConstant.ERROR_CODE_1000,
+            					SysUserConstant.ERROR_MESSAGE.get(SysUserConstant.ERROR_CODE_1000));
+                    }else{
+                    	response.setCodeAndMsg(CommonConstant.ERROR_CODE_1008, "身份证号码错误，无法进行密码找回");
+                    }
+                }else{
+                	response.setCodeAndMsg(CommonConstant.ERROR_CODE_1007, "手机号码错误，无法进行密码找回");
+                }
+            }
+
+
+        } catch (Exception e) {
+            log.error("CustomerController.login", e);
+            response.setCodeAndMsg(SysUserConstant.ERROR_CODE_2000,
+					SysUserConstant.ERROR_MESSAGE.get(SysUserConstant.ERROR_CODE_2000));
+        }
+
+        try {
+            model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+            log.debug("CustomerController.modifyPassword.response=="+JsonUtils.getJSONString(response));
+        } catch (Exception e) {
+            log.error("CustomerController.modifyPassword", e);
+        }
+        return RET_JSP;
+    }
+
+
+    /**
+     *  生成推荐码 根据  手机尾号4 年月日8  6位的数字字母混合的随机数
+     * @param loginName
+     * @param length
+     * @return  20位的推荐码
+     */
+
+    public  String getRecomCode(String loginName,int length){
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+        Calendar cal = Calendar.getInstance();
+        return loginName.substring(7)+"-"+sdf.format(cal.getTime())+ "-"+ SysUserConstant.createRandom(true, 6);
+    }
+
+    /**
+     * 根据用户ID 更改会员为经纪人
+     * @param model
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    @RequestMapping(value = "/applyAgent", method = RequestMethod.POST)
+
+    public String applyAgent(Map<String, String> model){
+        SysUserModifyPassRsp response = new SysUserModifyPassRsp();
+        response.setResultCode(SysUserConstant.ERROR_CODE_1000);
+        Integer userId = Integer.parseInt(request.getParameter("userId")==null?"0":request.getParameter("userId").toString());
+        try {
+
+            SysUser user = new SysUser();
+            user.setId(userId);
+//         更新用户属性为经纪人
+            memberInfoService.updateUserType(user);
+        } catch (Exception e) {
+            log.error("CustomerController.login", e);
+            response.setResultCode(SysUserConstant.ERROR_CODE_2000);
+        }
+        try {
+            if(response.getResultMessage()==null||"".equals(response.getResultMessage())){
+                response.setResultMessage( SysUserConstant.ERROR_MESSAGE.get(response.getResultCode()));
+            }
+            model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+            log.debug("CustomerController.applyAgent.response=="+JsonUtils.getJSONString(response));
+        } catch (Exception e) {
+            log.error("CustomerController.modifyPassword", e);
+        }
+        return RET_JSP;
+    }
+    
+    /**
+     * @throws Exception 
+     * 记录推荐的用户的增加信用分的日志
+     * @param desc 日志信息 ||type 操作类型 || id 操作人
+     * */
+    private void registrationLog(String desc,String type,Integer id) throws Exception{
+    	SysLog sysLog = new  SysLog();
+    	sysLog.setIp(this.getIpAddr());
+    	sysLog.setDescription(desc);
+    	sysLog.setOperatorId(id);
+    	sysLog.setLogType(type);
+    	sysUserService.addSysLog(sysLog);
+    }
+    
+    /**
+     * 校验验证码是否正确
+     * @param loginName 手机号
+     * @param SMSCode 前段输入的验证码
+     * @return true 正确 false 不正确
+     * */
+    private boolean validSMSCode(String loginName,String SMSCode) {
+    	boolean flag = false;
+    	String sendCode;
+    	//获取保存的验证码
+    	try {
+            sendCode = memcachedClient.get(loginName);
+            if(!StringUtils.isEmpty(sendCode) && sendCode.equals(SMSCode)){
+            	flag = true;
+            }else{
+            	log.info("输入的验证码为"+SMSCode+",后台获取的验证码为"+sendCode);
+            }
+		} catch (Exception ex) {
+			 log.info("memcachedClient链接异常,添加短信验证码到MAP中"+ex.getMessage());
+             sendCode =  SysUserConstant.SMSCODE_MAP.get(loginName);
+             SysUserConstant.SMSCODE_MAP.remove(loginName);
+		}
+    	return flag;
+    }
+    
+}

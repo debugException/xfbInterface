@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="t_stage_model" >
+  <resultMap id="BaseResultMap" class="cn.emagsoftware.xfb.pojo.StageModel" >
+    <result column="id" property="id" jdbcType="INTEGER" />
+    <result column="stage_num" property="stageNum" jdbcType="INTEGER" />
+    <result column="charge_percent" property="chargePercent" jdbcType="REAL" />
+    <result column="type_order" property="typeOrder" jdbcType="INTEGER" />
+    <result column="parent_id" property="parentId" jdbcType="INTEGER" />
+    <result column="type_path" property="typePath" jdbcType="VARCHAR" />
+    <result column="create_user_id" property="createUserId" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_user_id" property="updateUserId" jdbcType="INTEGER" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="description" property="description" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, stage_num, charge_percent, type_order, parent_id, type_path, create_user_id, 
+    create_time, update_user_id, update_time, description
+  </sql>
+    <sql id="Bean_Column_List" >
+        id,
+        stage_num stageNum,
+        charge_percent chargePercent
+    </sql>
+
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterClass="cn.emagsoftware.xfb.pojo.StageModel" >
+    select 
+    <include refid="t_stage_model.Base_Column_List" />
+    from t_stage_model
+    where id = #id:INTEGER#
+  </select>
+  <delete id="deleteByPrimaryKey" parameterClass="cn.emagsoftware.xfb.pojo.StageModel" >
+    delete from t_stage_model
+    where id = #id:INTEGER#
+  </delete>
+  <insert id="insert" parameterClass="cn.emagsoftware.xfb.pojo.StageModel" >
+    insert into t_stage_model (id, stage_num, charge_percent, type_order, 
+      parent_id, type_path, create_user_id, create_time, 
+      update_user_id, update_time, description)
+    values (#id:INTEGER#, #stageNum:INTEGER#, #chargePercent:REAL#, #typeOrder:INTEGER#, 
+      #parentId:INTEGER#, #typePath:VARCHAR#, #createUserId:INTEGER#, #createTime:TIMESTAMP#, 
+      #updateUserId:INTEGER#, #updateTime:TIMESTAMP#, #description:VARCHAR#)
+  </insert>
+  <insert id="insertSelective" parameterClass="cn.emagsoftware.xfb.pojo.StageModel" >
+    insert into t_stage_model
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        id
+      </isNotNull>
+      <isNotNull prepend="," property="stageNum" >
+        stage_num
+      </isNotNull>
+      <isNotNull prepend="," property="chargePercent" >
+        charge_percent
+      </isNotNull>
+      <isNotNull prepend="," property="typeOrder" >
+        type_order
+      </isNotNull>
+      <isNotNull prepend="," property="parentId" >
+        parent_id
+      </isNotNull>
+      <isNotNull prepend="," property="typePath" >
+        type_path
+      </isNotNull>
+      <isNotNull prepend="," property="createUserId" >
+        create_user_id
+      </isNotNull>
+      <isNotNull prepend="," property="createTime" >
+        create_time
+      </isNotNull>
+      <isNotNull prepend="," property="updateUserId" >
+        update_user_id
+      </isNotNull>
+      <isNotNull prepend="," property="updateTime" >
+        update_time
+      </isNotNull>
+      <isNotNull prepend="," property="description" >
+        description
+      </isNotNull>
+      )
+    </dynamic>
+    values
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        #id:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="stageNum" >
+        #stageNum:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="chargePercent" >
+        #chargePercent:REAL#
+      </isNotNull>
+      <isNotNull prepend="," property="typeOrder" >
+        #typeOrder:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="parentId" >
+        #parentId:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="typePath" >
+        #typePath:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="createUserId" >
+        #createUserId:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="createTime" >
+        #createTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="updateUserId" >
+        #updateUserId:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="updateTime" >
+        #updateTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="description" >
+        #description:VARCHAR#
+      </isNotNull>
+      )
+    </dynamic>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterClass="cn.emagsoftware.xfb.pojo.StageModel" >
+    update t_stage_model
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="stageNum" >
+        stage_num = #stageNum:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="chargePercent" >
+        charge_percent = #chargePercent:REAL#
+      </isNotNull>
+      <isNotNull prepend="," property="typeOrder" >
+        type_order = #typeOrder:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="parentId" >
+        parent_id = #parentId:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="typePath" >
+        type_path = #typePath:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="createUserId" >
+        create_user_id = #createUserId:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="createTime" >
+        create_time = #createTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="updateUserId" >
+        update_user_id = #updateUserId:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="updateTime" >
+        update_time = #updateTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="description" >
+        description = #description:VARCHAR#
+      </isNotNull>
+    </dynamic>
+    where id = #id:INTEGER#
+  </update>
+  <update id="updateByPrimaryKey" parameterClass="cn.emagsoftware.xfb.pojo.StageModel" >
+    update t_stage_model
+    set stage_num = #stageNum:INTEGER#,
+      charge_percent = #chargePercent:REAL#,
+      type_order = #typeOrder:INTEGER#,
+      parent_id = #parentId:INTEGER#,
+      type_path = #typePath:VARCHAR#,
+      create_user_id = #createUserId:INTEGER#,
+      create_time = #createTime:TIMESTAMP#,
+      update_user_id = #updateUserId:INTEGER#,
+      update_time = #updateTime:TIMESTAMP#,
+      description = #description:VARCHAR#
+    where id = #id:INTEGER#
+  </update>
+
+    <select id="getStageList" resultClass="cn.emagsoftware.xfb.pojo.StageModel"  >
+        select
+        <include refid="t_stage_model.Bean_Column_List" />
+        from t_stage_model
+    </select>
+    
+    <select id="getStageModelByStageNum" resultClass="cn.emagsoftware.xfb.pojo.StageModel"  >
+        select
+        <include refid="t_stage_model.Bean_Column_List" />
+        from t_stage_model
+        where stage_num = #stageNum:INTEGER#
+    </select>
+    
+</sqlMap>

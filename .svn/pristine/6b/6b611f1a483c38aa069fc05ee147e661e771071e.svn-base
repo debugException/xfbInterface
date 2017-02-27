@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="t_bill_stage" >
+  <resultMap id="BaseResultMap" class="cn.emagsoftware.xfb.pojo.BillStage" >
+      <result column="id" property="id" jdbcType="INTEGER" />
+      <result column="bill_no" property="billNo" jdbcType="VARCHAR" />
+      <result column="order_id" property="orderId" jdbcType="INTEGER" />
+      <result column="stage_amount" property="stageAmount" jdbcType="REAL" />
+      <result column="base_amount" property="baseAmount" jdbcType="REAL" />
+      <result column="charge_amount" property="chargeAmount" jdbcType="REAL" />
+      <result column="latest_repay" property="latestRepay" jdbcType="TIMESTAMP" />
+      <result column="overdue_day" property="overdueDay" jdbcType="INTEGER" />
+      <result column="bill_status" property="billStatus" jdbcType="INTEGER" />
+      <result column="repay_amount" property="repayAmount" jdbcType="REAL" />
+      <result column="description" property="description" jdbcType="VARCHAR" />
+      <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+      <result column="overdue_fine" property="overdueFine" jdbcType="REAL" />
+      <result column="actual_repay" property="actualRepay" jdbcType="TIMESTAMP" />
+      <result column="repay_channel" property="repayChannel" jdbcType="INTEGER" />
+      <result column="delete_flag" property="deleteFlag" jdbcType="INTEGER" />
+      <result column="return_time" property="returnTime" jdbcType="TIMESTAMP" />
+      <result column="refund_time" property="refundTime" jdbcType="TIMESTAMP" />
+      <result column="update_userid" property="updateUserid" jdbcType="INTEGER" />
+      <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, bill_no, order_id, stage_amount, base_amount, charge_amount, latest_repay, overdue_day, 
+    bill_status, description,repay_amount
+  </sql>
+  <select id="selectByPrimaryKey" resultClass="cn.emagsoftware.xfb.pojo.BillStage" parameterClass="cn.emagsoftware.xfb.pojo.BillStage" >
+    select
+        id, bill_no billNo, order_id orderId, stage_amount stageAmount, base_amount baseAmount, charge_amount chargeAmount, latest_repay latestRepay, overdue_day overdueDay,
+            bill_status billStatus, description,repay_amount repayAmount,overdue_fine overdueFine
+    from t_bill_stage
+    where id = #id:INTEGER#
+  </select>
+  <delete id="deleteByPrimaryKey" parameterClass="cn.emagsoftware.xfb.pojo.BillStage" >
+    delete from t_bill_stage
+    where id = #id:INTEGER#
+  </delete>
+  <insert id="insert" parameterClass="cn.emagsoftware.xfb.pojo.BillStage" >
+    insert into t_bill_stage (id, bill_no, order_id, stage_amount, base_amount, 
+      charge_amount, latest_repay, overdue_day, bill_status, 
+      description)
+    values (#id:INTEGER#, #billNo:VARCHAR#, #orderId:INTEGER#, #stageAmount:REAL#, #baseAmount:DECIMAL#, 
+      #chargeAmount:REAL#, #latestRepay:TIMESTAMP#, #overdueDay:INTEGER#, #billStatus:INTEGER#, 
+      #description:VARCHAR#)
+  </insert>
+  <insert id="insertSelective" parameterClass="cn.emagsoftware.xfb.pojo.BillStage" >
+    insert into t_bill_stage
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        id
+      </isNotNull>
+      <isNotNull prepend="," property="billNo" >
+        bill_no
+      </isNotNull>
+      <isNotNull prepend="," property="orderId" >
+        order_id
+      </isNotNull>
+      <isNotNull prepend="," property="stageAmount" >
+        stage_amount
+      </isNotNull>
+      <isNotNull prepend="," property="baseAmount" >
+        base_amount
+      </isNotNull>
+      <isNotNull prepend="," property="chargeAmount" >
+        charge_amount
+      </isNotNull>
+      <isNotNull prepend="," property="latestRepay" >
+        latest_repay
+      </isNotNull>
+      <isNotNull prepend="," property="overdueDay" >
+        overdue_day
+      </isNotNull>
+      <isNotNull prepend="," property="billStatus" >
+        bill_status
+      </isNotNull>
+      <isNotNull prepend="," property="description" >
+        description
+      </isNotNull>
+      )
+    </dynamic>
+    values
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        #id:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="billNo" >
+        #billNo:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="orderId" >
+        #orderId:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="stageAmount" >
+        #stageAmount:REAL#
+      </isNotNull>
+      <isNotNull prepend="," property="baseAmount" >
+        #baseAmount:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="chargeAmount" >
+        #chargeAmount:REAL#
+      </isNotNull>
+      <isNotNull prepend="," property="latestRepay" >
+        #latestRepay:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="overdueDay" >
+        #overdueDay:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="billStatus" >
+        #billStatus:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="description" >
+        #description:VARCHAR#
+      </isNotNull>
+      )
+    </dynamic>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterClass="cn.emagsoftware.xfb.pojo.BillStage" >
+    update t_bill_stage
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="billNo" >
+        bill_no = #billNo:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="orderId" >
+        order_id = #orderId:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="stageAmount" >
+        stage_amount = #stageAmount:REAL#
+      </isNotNull>
+      <isNotNull prepend="," property="baseAmount" >
+        base_amount = #baseAmount:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="chargeAmount" >
+        charge_amount = #chargeAmount:REAL#
+      </isNotNull>
+      <isNotNull prepend="," property="latestRepay" >
+        latest_repay = #latestRepay:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="overdueDay" >
+        overdue_day = #overdueDay:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="billStatus" >
+        bill_status = #billStatus:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="description" >
+        description = #description:VARCHAR#
+      </isNotNull>
+    </dynamic>
+    where id = #id:INTEGER#
+  </update>
+  <update id="updateByPrimaryKey" parameterClass="cn.emagsoftware.xfb.pojo.BillStage" >
+    update t_bill_stage
+    set bill_no = #billNo:VARCHAR#,
+      order_id = #orderId:INTEGER#,
+      stage_amount = #stageAmount:REAL#,
+      base_amount = #baseAmount:DECIMAL#,
+      charge_amount = #chargeAmount:REAL#,
+      latest_repay = #latestRepay:TIMESTAMP#,
+      overdue_day = #overdueDay:INTEGER#,
+      bill_status = #billStatus:INTEGER#,
+      description = #description:VARCHAR#
+    where id = #id:INTEGER#
+  </update>
+
+    <insert id="betchInsert" parameterClass="java.util.List">
+        <![CDATA[
+          insert into t_bill_stage(id, bill_no, order_id, stage_amount, base_amount, charge_amount, bill_status,
+            description,latest_repay,delete_flag,create_time,repay_channel) values
+        ]]>
+       <iterate conjunction=",">
+            <![CDATA[(
+                  #bills[].id:INTEGER#,
+                  #bills[].billNo:VARCHAR#,
+                  #bills[].orderId:INTEGER#,
+                  #bills[].stageAmount:REAL#,
+                  #bills[].baseAmount:DECIMAL#,
+                  #bills[].chargeAmount:REAL#,
+                  1,
+                  #bills[].description:VARCHAR#,
+                  #bills[].latestRepay:TIMESTAMP#,
+                  0,
+                  now(),
+                  0
+                  )]]>
+        </iterate>
+    </insert>
+
+
+    <select id="getBillListByOrderId" resultClass="cn.emagsoftware.xfb.pojo.BillStage"
+            parameterClass="cn.emagsoftware.xfb.pojo.BillStage">
+        select id, bill_no billNo, order_id orderId, stage_amount stageAmount, base_amount baseAmount, charge_amount chargeAmount, latest_repay latestRepay, overdue_day overdueDay,
+            bill_status billStatus, description,repay_amount repayAmount,overdue_fine overdueFine
+          from t_bill_stage
+           where order_id in(select id from t_order_info  where owner_userid=#ownerUserid:INTEGER#)
+        limit #page#, #pageSize#
+    </select>
+
+    <select id="getBillListByOrderId_count" resultClass="java.lang.Integer"  parameterClass="cn.emagsoftware.xfb.pojo.BillStage" >
+        select count(*)  from t_bill_stage where order_id in(select id from t_order_info  where owner_userid=#ownerUserid:INTEGER#)
+    </select>
+
+
+    <update id="updateStatusAndAmount" parameterClass="cn.emagsoftware.xfb.pojo.BillStage" >
+        update t_bill_stage
+        <dynamic prepend="set" >
+            actual_repay = now(),
+            <isNotNull prepend="," property="billStatus" >
+                bill_status = #billStatus:INTEGER#
+            </isNotNull>
+            <isNotNull prepend="," property="repayAmount" >
+                repay_amount = #repayAmount:REAL#
+            </isNotNull>
+		    <isNotNull prepend="," property="repayChannel">
+		         repay_channel =#repayChannel:INTEGER#
+		    </isNotNull>
+			<isNull prepend="," property="repayChannel">
+		         repay_channel =1
+		    </isNull>
+        </dynamic>
+        where id = #id:INTEGER#
+    </update>
+
+
+    <update id="updateStatusByOrder" parameterClass="cn.emagsoftware.xfb.pojo.BillStage" >
+        update t_bill_stage
+        <dynamic prepend="set" >
+                bill_status = 4
+        </dynamic>
+        where order_id = #orderId:INTEGER# and bill_status=1
+    </update>
+
+    <select id="getBillByOrder" resultClass="cn.emagsoftware.xfb.pojo.BillStage"
+            parameterClass="cn.emagsoftware.xfb.pojo.BillStage">
+        select id, bill_no billNo, order_id orderId, stage_amount stageAmount, base_amount baseAmount, charge_amount chargeAmount, latest_repay latestRepay, overdue_day overdueDay,
+                   bill_status billStatus, description,repay_amount repayAmount,overdue_fine overdueFine
+        from t_bill_stage
+        where bill_no =  #billNo:VARCHAR#
+    </select>
+    <select id="getBillByOrderId" resultClass="cn.emagsoftware.xfb.pojo.BillStage"
+            parameterClass="java.lang.Integer">
+        select id, bill_no billNo, order_id orderId, stage_amount stageAmount, base_amount baseAmount, charge_amount chargeAmount, latest_repay latestRepay, overdue_day overdueDay,
+                   bill_status billStatus, description,repay_amount repayAmount,overdue_fine overdueFine, actual_repay actualRepay
+        from t_bill_stage
+        where order_id =  #orderId:Integer#
+        order by bill_status in (0,3,1) desc,latest_repay
+    </select>
+	<select id="getBillDetail" resultClass="cn.emagsoftware.xfb.pojo.BillStage"
+            parameterClass="java.lang.Integer">
+           	SELECT
+			t1.*, 
+			t2.product_name productName,
+			t2.stage_plan stagePlan
+			FROM
+			(
+				SELECT
+					id,
+					bill_no billNo,
+					order_id orderId,
+					stage_amount stageAmount,
+					base_amount baseAmount,
+					charge_amount chargeAmount,
+					latest_repay latestRepay,
+					overdue_day overdueDay,
+					bill_status billStatus,
+					description description,
+					overdue_fine overdueFine,
+					create_time createTime,
+					actual_repay actualRepay,
+					now() as sysCurrentTime
+				FROM
+					t_bill_stage
+				WHERE
+					id = #billId:INTEGER#
+			) t1
+				LEFT JOIN t_order_info t2 ON t1.orderId = t2.id
+       
+    </select>
+    
+    <!-- orderId -->
+      
+          <select id="gettSevenBillNumByOwnerUserId" resultClass="java.lang.Integer" parameterClass="java.lang.Integer">
+				SELECT
+					count(t.id)
+				FROM
+					t_bill_stage t
+				INNER JOIN t_order_info t1 ON t.order_id = t1.id
+				WHERE
+					t1.owner_userid = #orderId:INTEGER#
+				AND DATE_SUB(
+					DATE_FORMAT(t.latest_repay, '%Y-%m-%d'),
+					INTERVAL 7 DAY
+				) &lt;= CURDATE()
+				AND t1.delete_flag = 0
+				AND t.bill_status IN (0, 3, 1)
+				AND t1.order_status IN (2, 3, 12, 13, 14)
+    </select>  
+    
+    
+    <select id="getBillFlagByOrderId" resultClass="java.lang.Integer" parameterClass="java.lang.Integer">
+    	select count(1) from t_bill_stage t where t.order_id = #orderId:INTEGER# and t.bill_status in (0,1,3)
+    </select>
+    
+    <!-- 根据流水号获取总金额（流水表） -->
+    <select id="selTotalAllByOrderNo" resultClass="cn.emagsoftware.xfb.pojo.BillStage" parameterClass="java.lang.String">
+    	SELECT
+    		stage_amount stageAmount, bill_no billNo, overdue_fine overdueFine, base_amount baseAmount, charge_amount chargeAmount
+    	FROM
+    		(
+	    		SELECT
+	    			bill_id AS billId
+	    		FROM
+	    			t_pay_recode
+	    		WHERE
+	    			trade_no = #orderNo:VARCHAR#
+	    	) t1
+	    LEFT JOIN t_bill_stage t2 ON t1.billId = t2.id
+    </select>
+    
+    <!-- 根据流水号获取总金额（账单表） -->
+    <select id="selTotalAllByBillNo" resultClass="cn.emagsoftware.xfb.pojo.BillStage" parameterClass="java.lang.String">
+    	SELECT
+    		stage_amount stageAmount, bill_no billNo, overdue_fine overdueFine, base_amount baseAmount, charge_amount chargeAmount
+    	FROM
+    		t_bill_stage t
+    	WHERE
+    		t.bill_no = #billNo:VARCHAR#
+    </select>
+    
+</sqlMap>

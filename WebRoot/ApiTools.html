@@ -1,0 +1,233 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>API测试工具</title>
+    <script type="text/javascript" src="js/jquery-1.9.1.js"></script>
+    <script type="text/javascript" src="js/template-simple.js"></script>
+    <script type="text/javascript" src="js/api-define.js"></script>
+    <script type="text/javascript" src="js/api-tools.js"></script>
+    <script id="fieldRow" type="text/html">
+        <tr>
+            <td class="fieldName"><span title="{{name}}">{{=key}}</span>：</td>
+            <td><span class="l"><input type="text" name="{{=key}}" value="{{=defalutValue}}"
+                                       style="width:190px;"></span>
+                       <span class="point-blue">{{required}}</span>
+            </td>
+
+        </tr>
+		<tr>
+			<td class="fieldName" ></td>
+			<td><font size="2">{{=remark}}<font></td>
+		</tr>
+    </script>
+    <script type="text/javascript">
+        $(function () {
+            initApiCategory();
+        })
+    </script>
+
+    <style type="text/css">
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .maincontent {
+            margin: 10px auto;
+            width: 1000px;
+        }
+
+        .top-header {
+            padding: 10px;
+            background-color: #1f4e7c;
+            color: white;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 1.1em;
+            background-color: #bbd988;
+            padding: 2px;
+            color: #ffffff
+        }
+
+        fieldset {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #336699;
+            border-bottom-width: 5px;
+        }
+
+        td.fieldName {
+            text-align: right;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+<div class="top-header">
+    API测试工具
+</div>
+<div class="maincontent">
+    <table class="parameters" width="500" border="0" cellpadding="4" cellspacing="0">
+        <tbody>
+
+        <tr>
+            <td class="fieldName" >类目：</td>
+            <td>
+                <select name="apiCategoryId" id="apiCategoryId" style="width:190px;"
+                        onchange="categoryChange();">
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="fieldName">API：</td>
+            <td> <span id="SipApinameDiv">
+                <select name="api" id="api" style="width:190px;"> </select></span>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <table style="border-collapse:collapse; border-spacing:0;width:1000px;">
+        <tbody>
+
+        <tr>
+            <td valign="top">
+                <table border="0" cellpadding="0" cellspacing="0">
+                    <tbody>
+                    <tr>
+                        <td>
+
+                            <form id="systemForm">
+                                <fieldset style="margin-top: 12px">
+                                    <legend>系统参数</legend>
+
+                                    <table class="parameters" width="500" border="0" cellpadding="4" cellspacing="0">
+                                        <tbody>
+
+                                        <tr>
+                                            <td class="fieldName">Api Version：</td>
+                                            <td><input type="text" name="apiVersion" value="1.0" style="width:190px;"
+                                                       isHeader="true"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fieldName">clientKey：</td>
+                                            <td><input type="password" name="clientKey" value="E2H92Z8900L99MAG" style="width:190px;"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fieldName">userToken：</td>
+                                            <td><input type="text" name="userToken" value="" style="width:190px;"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fieldName">accessToken：</td>
+                                            <td><input type="text" name="accessToken" value="" style="width:190px;" isHeader="true"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fieldName">Client-Version：</td>
+                                            <td><input type="text" name="Client-Version" value="1.0" style="width:190px;" isHeader="true"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fieldName">platform：</td>
+                                            <td>
+                                            <input type="text" name="platform" value="1" style="width:190px;" isHeader="true">
+                                            <br/>
+                                            <font size="2">平台号，1：android，2：ios</font>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fieldName">channelCode：</td>
+                                            <td><input type="text" name="channelCode" value="YUESHI" style="width:190px;" isHeader="true"></td>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                         <tr>
+                                            <td class="fieldName">imie：</td>
+                                            <td><input type="text" name="imie"  style="width:190px;" isHeader="true"></td>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td><font size="2">手机识别码</font></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fieldName">appId：</td>
+                                            <td><input type="text" id="appId" name="appId" value=""
+                                                       style="width:190px;">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td ></td>
+                                            <td><font size="2">平台号对应的鉴权码</font>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fieldName">resolution：</td>
+                                            <td><input type="text" name="resolution" value="1024X480" style="width:190px;" isHeader="true"></td>
+                                        </tr>
+
+                                        </tbody>
+                                    </table>
+                                </fieldset>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="">
+                            <form id="businessForm">
+                                <fieldset  style="margin-top: 20px">
+                                    <legend>业务参数</legend>
+
+                                    <table width="500" id="businessParams" border="0" cellpadding="4" cellspacing="0">
+                                        <tbody>
+
+                                        </tbody>
+                                    </table>
+                                </fieldset>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width="500" border="0" cellpadding="4" cellspacing="0">
+                                <tbody>
+                                <tr>
+                                    <td width="160">&nbsp;</td>
+                                    <td width="340" align="center">
+                                        <input type="button" value="提    交" onclick="submit();this.blur();"
+                                               style="width:60px;height:24px;*padding-top:3px;border:#666666 1px solid;cursor:pointer">
+
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </td>
+
+            <td valign="top">
+                提交参数：
+                <textarea name="params" id="params" cols="90" rows="10" readonly=""
+                          style="font-family:Tahoma,Helvetica,Arial,'宋体',sans-serif;font-size:12px;line-height:20px;"></textarea>
+                <br>
+                <br>
+                返回结果：
+                <br>
+                <textarea name="resultShow" id="resultShow" cols="90" rows="10" readonly=""
+                          style="font-family:Tahoma,Helvetica,Arial,'宋体',sans-serif;font-size:12px;line-height:20px;"></textarea>
+
+            </td>
+        </tr>
+        <tr></tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

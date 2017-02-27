@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="t_email_authinfo" >
+  <resultMap id="BaseResultMap" class="cn.emagsoftware.xfb.pojo.EmailAuthinfo" >
+    <result column="id" property="id" jdbcType="INTEGER" />
+    <result column="sys_userid" property="sysUserid" jdbcType="INTEGER" />
+    <result column="credit_id" property="creditId" jdbcType="INTEGER" />
+    <result column="credit_score" property="creditScore" jdbcType="REAL" />
+    <result column="company_email" property="companyEmail" jdbcType="VARCHAR" />
+    <result column="company_type" property="companyType" jdbcType="INTEGER" />
+    <result column="company_name" property="companyName" jdbcType="VARCHAR" />
+    <result column="company_telnum" property="companyTelnum" jdbcType="VARCHAR" />
+    <result column="submit_time" property="submitTime" jdbcType="TIMESTAMP" />
+    <result column="is_verify" property="isVerify" jdbcType="INTEGER" />
+    <result column="operator" property="operator" jdbcType="INTEGER" />
+    <result column="operate_time" property="operateTime" jdbcType="TIMESTAMP" />
+    <result column="description" property="description" jdbcType="VARCHAR" />
+    <result column="verify_status" property="verifyStatus" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, sys_userid, credit_id, credit_score, company_email, company_type, company_name, 
+    company_telnum, submit_time, is_verify, operator, operate_time, description, verify_status
+  </sql>
+    <sql id="Bean_Column_List" >
+        id,
+        sys_userid sysUserid,
+        credit_id creditId,
+        credit_score creditScore,
+        company_email companyEmail,
+        company_type companyType,
+        company_name companyName,
+        company_telnum companyTelnum,
+        submit_time submitTime,
+        is_verify isVerify,
+        operator,
+        operate_time operateTime,
+        description,
+        verify_status verifyStatus
+    </sql>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterClass="cn.emagsoftware.xfb.pojo.EmailAuthinfo" >
+    select 
+    <include refid="t_email_authinfo.Base_Column_List" />
+    from t_email_authinfo
+    where id = #id:INTEGER#
+  </select>
+  <delete id="deleteByPrimaryKey" parameterClass="cn.emagsoftware.xfb.pojo.EmailAuthinfo" >
+    delete from t_email_authinfo
+    where id = #id:INTEGER#
+  </delete>
+  <insert id="insert" parameterClass="cn.emagsoftware.xfb.pojo.EmailAuthinfo" >
+    insert into t_email_authinfo (id, sys_userid, credit_id, credit_score, 
+      company_email, company_type, company_name, company_telnum, 
+      submit_time, is_verify, operator, operate_time, 
+      description, verify_status)
+    values (#id:INTEGER#, #sysUserid:INTEGER#, #creditId:INTEGER#, #creditScore:REAL#,
+      #companyEmail:VARCHAR#, #companyType:INTEGER#, #companyName:VARCHAR#, #companyTelnum:VARCHAR#, 
+      now(), 1, #operator:INTEGER#, #operateTime:TIMESTAMP#,
+      #description:VARCHAR#, 0)
+  </insert>
+  <insert id="insertSelective" parameterClass="cn.emagsoftware.xfb.pojo.EmailAuthinfo" >
+    insert into t_email_authinfo
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        id
+      </isNotNull>
+      <isNotNull prepend="," property="sysUserid" >
+        sys_userid
+      </isNotNull>
+      <isNotNull prepend="," property="creditId" >
+        credit_id
+      </isNotNull>
+      <isNotNull prepend="," property="creditScore" >
+        credit_score
+      </isNotNull>
+      <isNotNull prepend="," property="companyEmail" >
+        company_email
+      </isNotNull>
+      <isNotNull prepend="," property="companyType" >
+        company_type
+      </isNotNull>
+      <isNotNull prepend="," property="companyName" >
+        company_name
+      </isNotNull>
+      <isNotNull prepend="," property="companyTelnum" >
+        company_telnum
+      </isNotNull>
+      <isNotNull prepend="," property="submitTime" >
+        submit_time
+      </isNotNull>
+      <isNotNull prepend="," property="isVerify" >
+        is_verify
+      </isNotNull>
+      <isNotNull prepend="," property="operator" >
+        operator
+      </isNotNull>
+      <isNotNull prepend="," property="operateTime" >
+        operate_time
+      </isNotNull>
+      <isNotNull prepend="," property="description" >
+        description
+      </isNotNull>
+      <isNotNull prepend="," property="verifyStatus" >
+        verify_status
+      </isNotNull>
+      )
+    </dynamic>
+    values
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        #id:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="sysUserid" >
+        #sysUserid:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="creditId" >
+        #creditId:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="creditScore" >
+        #creditScore:REAL#
+      </isNotNull>
+      <isNotNull prepend="," property="companyEmail" >
+        #companyEmail:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="companyType" >
+        #companyType:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="companyName" >
+        #companyName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="companyTelnum" >
+        #companyTelnum:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="submitTime" >
+        #submitTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="isVerify" >
+        #isVerify:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="operator" >
+        #operator:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="operateTime" >
+        #operateTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="description" >
+        #description:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="verifyStatus" >
+        #verifyStatus:INTEGER#
+      </isNotNull>
+      )
+    </dynamic>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterClass="cn.emagsoftware.xfb.pojo.EmailAuthinfo" >
+    update t_email_authinfo
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="sysUserid" >
+        sys_userid = #sysUserid:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="creditId" >
+        credit_id = #creditId:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="creditScore" >
+        credit_score = #creditScore:REAL#
+      </isNotNull>
+      <isNotNull prepend="," property="companyEmail" >
+        company_email = #companyEmail:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="companyType" >
+        company_type = #companyType:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="companyName" >
+        company_name = #companyName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="companyTelnum" >
+        company_telnum = #companyTelnum:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="submitTime" >
+        submit_time = #submitTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="isVerify" >
+        is_verify = #isVerify:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="operator" >
+        operator = #operator:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="operateTime" >
+        operate_time = #operateTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="description" >
+        description = #description:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="verifyStatus" >
+        verify_status = #verifyStatus:INTEGER#
+      </isNotNull>
+    </dynamic>
+    where id = #id:INTEGER#
+  </update>
+  <update id="updateByPrimaryKey" parameterClass="cn.emagsoftware.xfb.pojo.EmailAuthinfo" >
+    update t_email_authinfo
+    set sys_userid = #sysUserid:INTEGER#,
+      credit_id = #creditId:INTEGER#,
+      credit_score = #creditScore:REAL#,
+      company_email = #companyEmail:VARCHAR#,
+      company_type = #companyType:INTEGER#,
+      company_name = #companyName:VARCHAR#,
+      company_telnum = #companyTelnum:VARCHAR#,
+      submit_time = now(),
+      is_verify = 1,
+      operator = #operator:INTEGER#,
+      operate_time =now(),
+      description = #description:VARCHAR#,
+      verify_status = 0
+    where id = #id:INTEGER#
+  </update>
+
+    <select id="getEmailAuthinfoByUserid" resultClass="cn.emagsoftware.xfb.pojo.EmailAuthinfo" parameterClass="cn.emagsoftware.xfb.pojo.EmailAuthinfo" >
+        select
+        <include refid="t_email_authinfo.Bean_Column_List" />
+        from t_email_authinfo
+        where  sys_userid = #sysUserid:INTEGER#
+    </select>
+
+
+    <update id="updateUserEmail" parameterClass="cn.emagsoftware.xfb.pojo.EmailAuthinfo" >
+        update t_email_authinfo
+        set
+        company_email = #companyEmail:VARCHAR#
+
+        where sys_userid =  #sysUserid:INTEGER#
+    </update>
+</sqlMap>

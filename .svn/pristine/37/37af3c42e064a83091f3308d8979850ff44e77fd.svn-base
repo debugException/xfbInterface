@@ -1,0 +1,411 @@
+package cn.emagsoftware.xfb.controller;
+
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import net.rubyeye.xmemcached.MemcachedClient;
+import net.sf.json.JSONObject;
+
+import org.apache.commons.beanutils.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import cn.emagsoftware.frame.bean.BaseRspBean;
+import cn.emagsoftware.frame.bean.XFBResponseBean;
+import cn.emagsoftware.frame.controller.BaseController;
+import cn.emagsoftware.utils.CommonUtils;
+import cn.emagsoftware.utils.Constant;
+import cn.emagsoftware.utils.DateUtil;
+import cn.emagsoftware.utils.WcfCallUtils;
+import cn.emagsoftware.utils.json.JsonUtils;
+import cn.emagsoftware.xfb.constants.AppConstants;
+import cn.emagsoftware.xfb.constants.BillConstant;
+import cn.emagsoftware.xfb.dto.BillListRspG;
+import cn.emagsoftware.xfb.dto.BillRsp;
+import cn.emagsoftware.xfb.dto.SingleOrderBillRsp;
+import cn.emagsoftware.xfb.pojo.BillStage;
+import cn.emagsoftware.xfb.pojo.MemberInfo;
+import cn.emagsoftware.xfb.pojo.OrderInfo;
+import cn.emagsoftware.xfb.service.BillStageService;
+import cn.emagsoftware.xfb.service.MemberInfoService;
+import cn.emagsoftware.xfb.service.OrderService;
+
+@Controller
+@RequestMapping("/bill")
+public class BillStageController extends BaseController {
+
+    @Autowired
+    private BillStageService billStageService;
+
+
+    @Autowired
+    private OrderService orderService;
+
+
+    @Autowired
+    private MemberInfoService memberInfoService;
+
+    @Autowired
+    private MemcachedClient memcachedClient;
+    
+    @Autowired
+    private WcfCallUtils wcfCallUtils;
+    
+    /**
+     * 获取产品未还账单首页
+     *
+     * @param model
+     * @return
+     * @throws UnsupportedEncodingException
+     */
+    @SuppressWarnings("unchecked")
+    @RequestMapping(value = "integrationBill", method = RequestMethod.POST)  
+    public String billList(Map<String, String> model) throws UnsupportedEncodingException {
+
+    	BillListRspG response = new BillListRspG();
+        response.setResultCode(BillConstant.ERROR_CODE_1000);
+        try {
+        		log.info("查询产品未还账单首页开始");
+        		//获取用户的订单
+        		OrderInfo orderInfo = this.getOrderInfo();
+                Map<String, Object> OrderMap = orderService.findOrderInfoByOwnerUserid(orderInfo, orderInfo.getPage() * orderInfo.getPageSize(), orderInfo.getPageSize());
+                /*把数据与客户端格式做成等比转换的对象*/
+                Map<String, Object> map = response.getIntegrationBill();
+                List<Object> billList = new ArrayList<Object>();
+                Map<String, Object> billMap = null;
+                /*把数据与客户端格式做成等比转换的对象*/
+                
+                BillStage billStage = null;
+                List<OrderInfo> orderInfoList = (List<OrderInfo>) OrderMap.get("orderInfoList");
+                for (OrderInfo order : orderInfoList) {
+                	billStage = new BillStage();
+                	//获取单个订单的所有分期
+					List<BillStage> billStageList = billStageService.getBillByOrderId(order.getId());
+					if (billStageList.isEmpty() || billStageList == null) {
+						//以下代码v1.1.1不做校验
+						/*log.info("<<<<<<<<<<获取订单失败，订单号："+order.getId()+">>>>>>>>>>>");
+						log.info("此用户下的这个订单状态为以分期，但没有对应的账单");
+						response.setResultCode(BillConstant.ERROR_CODE_2001);
+						response.setResultMessage( BillConstant.ERROR_MESSAGE.get(response.getResultCode()));
+						model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+						return RET_JSP;*/
+					} else { //账单不为空才做如下处理 原因：订单未分期可以退货这样就能导致有订单没账单的情况
+						for (BillStage bill : billStageList) {
+							Integer status = bill.getBillStatus();
+							if (status == 0 || status == 1 || status == 3) {
+								setIntegrationBill(billList, order, bill, billMap);
+								order.setBillStage(bill);
+								break;
+							}
+							//如果没有被break，循环过后是最后一个账单
+							billStage = bill;
+						}
+						//如果order中没有账单，取最后一个账单
+						if (order.getBillStage() == null) {
+							order.setBillStage(billStage);
+							setIntegrationBill(billList, order, billStage, billMap);
+						}
+					}
+				}
+                map.put("billList", billList);
+                map.put("pageSize", CommonUtils.getToString(orderInfo.getPageSize()));
+                map.put("total", CommonUtils.getToString(OrderMap.get("total")));
+                map.put("page", CommonUtils.getToString(orderInfo.getPage()));
+        		log.info("查询产品未还账单首页结束");
+        } catch (Exception ex) {
+            log.error("查询产品未还账单首页失败", ex);
+            ex.printStackTrace();
+            response.setResultCode(BillConstant.ERROR_CODE_2000);
+        }
+
+        try {
+            response.setResultMessage( BillConstant.ERROR_MESSAGE.get(response.getResultCode()));
+            model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+            log.debug("BillStageController.billList.response=="+JsonUtils.getJSONString(response));
+        } catch (Exception e) {
+            log.error("CustomerController.login", e);
+        }
+        return RET_JSP;
+    }
+    /**
+     * 获取账单详情
+     *
+     * @param model
+     * @return
+     * @throws UnsupportedEncodingException
+     */
+    @SuppressWarnings("unchecked")
+    @RequestMapping(value = "billDetail", method = RequestMethod.POST)
+    public String billDetail(Map<String, String> model) throws UnsupportedEncodingException {
+    	Map<String, Object> data = new HashMap<String, Object>();
+    	String resultCode = BillConstant.ERROR_CODE_1000;
+        try {
+        		log.info("查询账单详情开始");
+        	    BillStage requestBill = this.getBillStage();
+        	    BillStage billDetail = billStageService.getBillDetail(requestBill.getBillId());
+        	    if (billDetail == null){
+        	    	resultCode = BillConstant.ERROR_CODE_2002;
+        	    } else {
+        	    	data.put("billId", 		CommonUtils.getToString(billDetail.getId()));
+        	    	data.put("billNo",      billDetail.getBillNo());
+        	    	data.put("orderId", 	CommonUtils.getToString(billDetail.getOrderId()));
+        	    	data.put("stageAmount", CommonUtils.getToString(billDetail.getStageAmount()));
+        	    	data.put("baseAmount",  CommonUtils.getToString(billDetail.getBaseAmount()));
+        	    	data.put("chargeAmount",CommonUtils.getToString(billDetail.getChargeAmount()));
+//        	    	data.put("latestRepay", DateUtil.getDateString(billDetail.getLatestRepay(), "yyyy-MM-dd"));
+        	    	data.put("latestRepay", CommonUtils.getToString(billDetail.getLatestRepay().getTime()));
+        	    	//System.currentTimeMillis() 更改为 billDetail.getSysCurrentTime().getTime()
+        	    	data.put("remainRepay", CommonUtils.getToString(DateUtil.getDay(billDetail.getLatestRepay().getTime(), billDetail.getSysCurrentTime().getTime())));
+        	    	String actualRepay = "";
+					if (!CommonUtils.isEmptyByObj(billDetail.getActualRepay())) {
+						actualRepay = CommonUtils.getToString(billDetail.getActualRepay().getTime());
+					}
+        	    	data.put("actualRepay", actualRepay);
+        	    	data.put("overdueDay", 	CommonUtils.getToString(billDetail.getOverdueDay()));
+        	    	data.put("billStatus", 	CommonUtils.getToString(billDetail.getBillStatus()));
+        	    	data.put("overdueFine",	CommonUtils.getToString(billDetail.getOverdueFine()));
+        	    	data.put("productName", billDetail.getProductName());
+        	    	data.put("stagePlan",   CommonUtils.getToString(billDetail.getStagePlan()));
+//        	    	data.put("currentStage",billDetail.getCurrentStage());
+        			//billStage.getCurrentStage() modify author: Black
+        	    	data.put("currentStage", Integer.valueOf(billDetail.getDescription()));
+        	    	data.put("createTime",  DateUtil.getDateString(billDetail.getCreateTime(), "yyyy-MM-dd"));
+        	    	//此为月供还款总额
+        	    	Float sumAmount = billDetail.getBaseAmount()+billDetail.getChargeAmount();
+			    	if (billDetail.getOverdueFine() != null && !"".equals(billDetail.getOverdueFine())) {
+			    		sumAmount = sumAmount+billDetail.getOverdueFine();
+			    	}
+        	    	data.put("userLimit", CommonUtils.getToString(sumAmount));
+
+        	    }
+        		log.info("查询账单详情结束");
+        } catch (Exception ex) {
+            log.error("查询账单详情失败", ex);
+            resultCode = BillConstant.ERROR_CODE_2000;
+        }
+
+        try {
+            String resultMsg = BillConstant.ERROR_MESSAGE.get(resultCode);
+            XFBResponseBean response = new XFBResponseBean(resultCode, resultMsg, data);
+            model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+            log.debug("BillStageController.billList.response=="+JsonUtils.getJSONString(response));
+        } catch (Exception e) {
+            log.error("CustomerController.login", e);
+        }
+        return RET_JSP;
+    }
+    
+    /**
+     * 获取单个产品的所有账单
+     *
+     * @param model
+     * @return
+     * @throws UnsupportedEncodingException
+     */
+    @SuppressWarnings("unchecked")
+//    @RequestMapping(value = "singleOrderBill", method = RequestMethod.POST)
+    @RequestMapping(value = "singleOrderBill", method = {RequestMethod.POST, RequestMethod.GET})
+    public String singleOrderBill(Map<String, String> model) throws UnsupportedEncodingException {
+
+    	SingleOrderBillRsp response = new SingleOrderBillRsp();
+    	 /*把数据与客户端格式做成等比转换的对象*/
+    	Map<String, Object> map = response.getSingleOrderBill();
+    	List<Object> soBillList = new ArrayList<Object>();
+    	Map<String, Object> soBillMap = null;
+    	 /*把数据与客户端格式做成等比转换的对象*/
+        response.setResultCode(BillConstant.ERROR_CODE_1000);
+        try {
+        		log.info("查询单个产品所有账单开始");
+        		OrderInfo order = this.getOrderInfo();
+				List<BillStage> billStageList = billStageService.getBillByOrderId(order.getId());
+				for (BillStage billStage : billStageList) {
+					soBillMap = new HashMap<String, Object>();
+					soBillMap.put("productName", request.getParameter("productName"));
+//					soBillMap.put("productPrice", request.getParameter("productPrice"));
+					//此为月供还款总额
+			    	Float sumAmount = billStage.getBaseAmount()+billStage.getChargeAmount();
+			    	if (billStage.getOverdueFine() != null && !"".equals(billStage.getOverdueFine())) {
+			    		sumAmount = sumAmount+billStage.getOverdueFine();
+			    	}
+					soBillMap.put("userLimit", 	CommonUtils.getToString(sumAmount));
+					soBillMap.put("stagePlan", 	billStageList.size()+"");
+					soBillMap.put("billId", 	CommonUtils.getToString(billStage.getId()));
+					soBillMap.put("billNo", 	billStage.getBillNo());
+//					soBillMap.put("latestRepay", DateUtil.getDateString(billStage.getLatestRepay(), "yyyy年MM月dd日"));
+					String actualRepay = "";
+					if (!CommonUtils.isEmptyByObj(billStage.getActualRepay())) {
+						actualRepay = CommonUtils.getToString(billStage.getActualRepay().getTime());
+					}
+					soBillMap.put("latestRepay", CommonUtils.getToString(billStage.getLatestRepay().getTime()));
+					soBillMap.put("remainRepay", CommonUtils.getToString(DateUtil.getDay(billStage.getLatestRepay().getTime(), System.currentTimeMillis())));
+					soBillMap.put("actualRepay", actualRepay);
+					//billStage.getCurrentStage() modify author: Black
+					soBillMap.put("currentStage",Integer.valueOf(billStage.getDescription()));
+					soBillMap.put("billStatus",  CommonUtils.getToString(billStage.getBillStatus()));
+					soBillMap.put("overdueDay",  CommonUtils.getToString(billStage.getOverdueDay()));
+					
+					soBillList.add(soBillMap);
+				}
+				map.put("billList", soBillList);
+        		log.info("查询单个产品所有账单结束");
+        } catch (Exception ex) {
+            log.error("查询单个产品所有账单失败", ex);
+            response.setResultCode(BillConstant.ERROR_CODE_2000);
+        }
+
+        try {
+            response.setResultMessage( BillConstant.ERROR_MESSAGE.get(response.getResultCode()));
+            model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+            log.debug("BillStageController.billList.response=="+JsonUtils.getJSONString(response));
+        } catch (Exception e) {
+            log.error("CustomerController.login", e);
+        }
+        return RET_JSP;
+    }
+    
+    /**
+     * 账单还款
+     * @param model
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    @RequestMapping(value = "payment", method = RequestMethod.POST)
+    public  String  billPayment(Map<String, String> model){
+    	log.info("==>goto cn.emagsoftware.xfb.controller.BillStageController");
+        BillRsp response = new BillRsp();
+        response.setResultCode(BillConstant.ERROR_CODE_1000);
+        try {
+            BillStage bill = this.getBillStage();
+            if(bill.getPayResult()==1){
+                if(memcachedClient.add(""+bill.getId(), AppConstants.BILL_TIMEOUT_SECONDS,"")){
+                    log.info("该账单状态没有修改，进行账单状态修改="+bill.getId());
+                    bill.setBillStatus(2);
+                    billStageService.updateBill(bill);
+
+                    BillStage optBill = billStageService.getBillById(bill);
+                    OrderInfo orderInfo = new OrderInfo();
+                    orderInfo.setId(optBill.getOrderId());
+                    OrderInfo memberOrder =  orderService.getOrderInfoById(orderInfo);
+
+                    MemberInfo memberInfo = new MemberInfo();
+                    memberInfo.setSysUserid(memberOrder.getOwnerUserid());
+                    memberInfo.setUseSum(optBill.getBaseAmount());
+                    memberInfoService.updateUseScore(memberInfo);
+                }else{
+                    log.info("该账单状态已经被处理，不进行账单状态修改="+bill.getId());
+                }
+            }else if(bill.getPayResult()==2){
+                log.info("支付确认中，账单没有处理");
+            }else if(bill.getPayResult()==3){
+                log.info("支付失败，账单没有处理");
+            }
+        } catch (Exception ex) {
+            log.error("账单还款失败", ex);
+            response.setResultCode(BillConstant.ERROR_CODE_2000);
+        }
+
+        try {
+            response.setResultMessage( BillConstant.ERROR_MESSAGE.get(response.getResultCode()));
+            model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+            log.debug("BillStageController.billPayment.response=="+JsonUtils.getJSONString(response));
+        } catch (Exception e) {
+            log.error("CustomerController.login", e);
+        }
+
+        return RET_JSP;
+
+    }
+
+
+
+    /**
+     *根据Request获取账单请求信息
+     * @return
+     */
+    public BillStage getBillStage(){
+        BillStage billStage = new BillStage();
+        try {
+            BeanUtils.populate(billStage, request.getParameterMap());
+            log.debug("请求的账单单信息为："+JSONObject.fromObject(billStage).toString());
+        } catch (Exception ex) {
+            log.error("用户请求账单信息转换错误" + ex.getMessage(), ex);
+            billStage = null;
+        }
+        return billStage;
+    }
+    public OrderInfo getOrderInfo(){
+    	OrderInfo orderInfo = new OrderInfo();
+        try {
+            BeanUtils.populate(orderInfo, request.getParameterMap());
+            log.debug("请求的账单单信息为："+JSONObject.fromObject(orderInfo).toString());
+        } catch (Exception ex) {
+            log.error("用户请求账单信息转换错误" + ex.getMessage(), ex);
+            orderInfo = null;
+        }
+        return orderInfo;
+    }
+    
+    //设置对应客户端的参数
+    private void setIntegrationBill(List<Object> billList, OrderInfo order,
+    		BillStage bill, Map<String, Object> billMap) {
+    	billMap = new HashMap<String, Object>();
+    	billMap.put("orderId", 		CommonUtils.getToString(order.getId()));
+    	billMap.put("orderName", 	order.getOrderName());
+    	//此为月供还款总额
+    	Float sumAmount = bill.getBaseAmount()+bill.getChargeAmount();
+    	if (bill.getOverdueFine() != null && !"".equals(bill.getOverdueFine())) {
+    		sumAmount = sumAmount+bill.getOverdueFine();
+    	}
+    	billMap.put("userLimit", 	CommonUtils.getToString(sumAmount));
+    	billMap.put("productName", 	order.getProductName());
+    	billMap.put("stagePlan",	CommonUtils.getToString(order.getStagePlan()));
+//    	billMap.put("productPrice", CommonUtils.getToString(order.getProductPrice()));
+    	billMap.put("billId", 		CommonUtils.getToString(bill.getId()));
+    	billMap.put("billNo", 		bill.getBillNo());
+//    	billMap.put("latestRepay", DateUtil.getDateString(bill.getLatestRepay(), "yyyy年MM月dd日"));
+    	billMap.put("latestRepay",  CommonUtils.getToString(bill.getLatestRepay().getTime()));
+    	billMap.put("remainRepay",  CommonUtils.getToString(DateUtil.getDay(bill.getLatestRepay().getTime(), System.currentTimeMillis())));
+    	String actualRepay = "";
+		if (!CommonUtils.isEmptyByObj(bill.getActualRepay())) {
+			actualRepay = CommonUtils.getToString(bill.getActualRepay().getTime());
+		}
+    	billMap.put("actualRepay",  actualRepay);
+		//billStage.getCurrentStage() modify author: Black
+    	billMap.put("currentStage", Integer.valueOf(bill.getDescription()));
+//    	billMap.put("currentStage", bill.getCurrentStage());
+    	billMap.put("billStatus", 	CommonUtils.getToString(bill.getBillStatus()));
+    	billMap.put("overdueDay", 	CommonUtils.getToString(bill.getOverdueDay()));
+    	billList.add(billMap);
+    }
+
+    /**
+     * 
+     * 设置账单状态  调用商城wcf接口
+     * @author Black
+     * @date 2015-9-12 下午3:58:01
+     *
+     * @param model
+     * @return
+     */
+    @RequestMapping(value = "/setBillStatus", method = RequestMethod.POST)
+    public String setBillStatus (Map<String, String> model) {
+    	BaseRspBean response = new BaseRspBean();
+    	/*//订单Id
+    	Integer billId = Integer.valueOf(request.getParameter("billId"));
+    	//订单号
+    	String billName = request.getParameter("billName");
+    	//订单状态
+    	Integer billStatus = Integer.valueOf(request.getParameter("billStatus"));
+		wcfCallUtils.callSetBillStatus(billId, billName, billStatus);*/
+		//成功设置
+        response.setCodeAndMsg(Constant.SUCCESS_CODE,Constant.ERROR_MESSAGE
+                .get(Constant.SUCCESS_CODE));
+    	model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+        return RET_JSP;
+    }
+}

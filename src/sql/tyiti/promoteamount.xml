@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="promoteamount" >
+  <resultMap id="BaseResultMap" class="cn.tyiti.xfb.bojo.PromoteAmount" >
+    <result column="type" property="type" jdbcType="VARCHAR" />
+    <result column="recom_num" property="userRecomNum" jdbcType="VARCHAR" />
+    <result column="mi_id" property="memberInfo.id" jdbcType="INTEGER" />
+    <result column="mi_verify_state" property="memberInfo.state" jdbcType="VARCHAR" />
+    <result column="ji_id" property="jobInfo.id" jdbcType="INTEGER" />
+    <result column="ji_verify_state" property="jobInfo.state" jdbcType="VARCHAR" />
+    <result column="si_id" property="studentInfo.id" jdbcType="INTEGER" />
+    <result column="si_verify_state" property="studentInfo.state" jdbcType="VARCHAR" />
+    <result column="ci_id" property="contactsInfo.id" jdbcType="INTEGER" />
+    <result column="ci_verify_state" property="contactsInfo.state" jdbcType="VARCHAR" />
+    <result column="bci_id" property="depositCard.id" jdbcType="INTEGER" />
+    <result column="bci_verify_state" property="depositCard.state" jdbcType="VARCHAR" />
+    <result column="bci2_id" property="creditCard.id" jdbcType="INTEGER" />
+    <result column="bci2_verify_state" property="creditCard.state" jdbcType="VARCHAR" />
+    <result column="ii_id" property="drivingLicense.id" jdbcType="INTEGER" />
+    <result column="ii_verify_state" property="drivingLicense.state" jdbcType="VARCHAR" />
+  </resultMap>
+  
+	<!-- 目前暂时用性能比较低下的子查询找出最新的一条，
+	 后期做性能优化的时候需要在
+	 t_contact_info 
+	 t_bank_card_info 
+	 t_image_info 
+	 三个表中增加flag字段， 使用触发器在插入时将历史记录更新为无效 -->
+  <select id="getStateInfo" resultMap="BaseResultMap" parameterClass="java.lang.Integer" >
+   select su.type,su.recom_num,mi.id as mi_id,mi.verify_state as mi_verify_state 
+		,ji.id as ji_id,ji.verify_state as ji_verify_state 
+		,si.id as si_id,si.verify_state as si_verify_state 
+		,ci.id as ci_id,ci.verify_state as ci_verify_state 
+		,bci.id as bci_id,bci.verify_state as bci_verify_state 
+		,bci2.id as bci2_id,bci2.verify_state as bci2_verify_state 
+		,ii.id as ii_id,ii.verify_state as ii_verify_state 
+		from t_sys_user su 
+		left join t_member_info mi on su.id = mi.user_id
+		left join t_job_info ji on su.id = ji.user_id
+		left join t_student_info si on su.id = si.user_id
+		left join (select * from t_contact_info where user_id=#id:INTEGER# order by modify_time desc limit 1) ci on su.id = ci.user_id
+		left join (select * from t_bank_card_info where user_id=#id:INTEGER# and type='A1' order by modify_time desc limit 1) bci on su.id = bci.user_id 
+		left join (select * from t_bank_card_info where user_id=#id:INTEGER# and type='A2' order by modify_time desc limit 1) bci2 on su.id = bci2.user_id
+		left join (select * from t_image_info where user_id=#id:INTEGER# and type='A6' order by modify_time desc limit 1) ii on su.id = ii.user_id
+		where su.id=#id:INTEGER#
+  </select>
+</sqlMap>

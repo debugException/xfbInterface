@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="t_credit_model" >
+  <resultMap id="BaseResultMap" class="cn.emagsoftware.xfb.pojo.CreditModel" >
+    <result column="id" property="id" jdbcType="INTEGER" />
+    <result column="credit_name" property="creditName" jdbcType="VARCHAR" />
+    <result column="credit_score" property="creditScore" jdbcType="REAL" />
+    <result column="type_order" property="typeOrder" jdbcType="INTEGER" />
+    <result column="parent_id" property="parentId" jdbcType="INTEGER" />
+    <result column="type_path" property="typePath" jdbcType="VARCHAR" />
+    <result column="create_userid" property="createUserid" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_userid" property="updateUserid" jdbcType="INTEGER" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="description" property="description" jdbcType="VARCHAR" />
+    <result column="credit_code" property="creditCode" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, credit_name, credit_score, type_order, parent_id, type_path, create_userid, create_time,
+    update_userid, update_time, description, credit_code
+</sql>
+
+
+    <sql id="Bean_Column_List" >
+        id,
+        credit_name createName,
+        credit_score creditScore,
+        type_order typeOrder,
+        parent_id parentId,
+        type_path typePath,
+        create_userid createUserid,
+        create_time createTime,
+        update_userid updateUserid,
+        update_time updateTime,
+        description,
+        credit_code creditCode
+    </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterClass="cn.emagsoftware.xfb.pojo.CreditModel" >
+    select 
+    <include refid="t_credit_model.Base_Column_List" />
+    from t_credit_model
+    where id = #id:INTEGER#
+  </select>
+  <delete id="deleteByPrimaryKey" parameterClass="cn.emagsoftware.xfb.pojo.CreditModel" >
+    delete from t_credit_model
+    where id = #id:INTEGER#
+  </delete>
+  <insert id="insert" parameterClass="cn.emagsoftware.xfb.pojo.CreditModel" >
+    insert into t_credit_model (id, credit_name, credit_score, type_order, 
+      parent_id, type_path, create_userid, create_time, 
+      update_userid, update_time, description, credit_code
+      )
+    values (#id:INTEGER#, #creditName:VARCHAR#, #creditScore:REAL#, #typeOrder:INTEGER#, 
+      #parentId:INTEGER#, #typePath:VARCHAR#, #createUserid:INTEGER#, #createTime:TIMESTAMP#, 
+      #updateUserid:INTEGER#, #updateTime:TIMESTAMP#, #description:VARCHAR#, #creditCode:VARCHAR#
+      )
+  </insert>
+  <insert id="insertSelective" parameterClass="cn.emagsoftware.xfb.pojo.CreditModel" >
+    insert into t_credit_model
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        id
+      </isNotNull>
+      <isNotNull prepend="," property="creditName" >
+        credit_name
+      </isNotNull>
+      <isNotNull prepend="," property="creditScore" >
+        credit_score
+      </isNotNull>
+      <isNotNull prepend="," property="typeOrder" >
+        type_order
+      </isNotNull>
+      <isNotNull prepend="," property="parentId" >
+        parent_id
+      </isNotNull>
+      <isNotNull prepend="," property="typePath" >
+        type_path
+      </isNotNull>
+      <isNotNull prepend="," property="createUserid" >
+        create_userid
+      </isNotNull>
+      <isNotNull prepend="," property="createTime" >
+        create_time
+      </isNotNull>
+      <isNotNull prepend="," property="updateUserid" >
+        update_userid
+      </isNotNull>
+      <isNotNull prepend="," property="updateTime" >
+        update_time
+      </isNotNull>
+      <isNotNull prepend="," property="description" >
+        description
+      </isNotNull>
+      <isNotNull prepend="," property="creditCode" >
+        credit_code
+      </isNotNull>
+      )
+    </dynamic>
+    values
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        #id:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="creditName" >
+        #creditName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="creditScore" >
+        #creditScore:REAL#
+      </isNotNull>
+      <isNotNull prepend="," property="typeOrder" >
+        #typeOrder:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="parentId" >
+        #parentId:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="typePath" >
+        #typePath:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="createUserid" >
+        #createUserid:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="createTime" >
+        #createTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="updateUserid" >
+        #updateUserid:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="updateTime" >
+        #updateTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="description" >
+        #description:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="creditCode" >
+        #creditCode:VARCHAR#
+      </isNotNull>
+      )
+    </dynamic>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterClass="cn.emagsoftware.xfb.pojo.CreditModel" >
+    update t_credit_model
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="creditName" >
+        credit_name = #creditName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="creditScore" >
+        credit_score = #creditScore:REAL#
+      </isNotNull>
+      <isNotNull prepend="," property="typeOrder" >
+        type_order = #typeOrder:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="parentId" >
+        parent_id = #parentId:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="typePath" >
+        type_path = #typePath:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="createUserid" >
+        create_userid = #createUserid:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="createTime" >
+        create_time = #createTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="updateUserid" >
+        update_userid = #updateUserid:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="updateTime" >
+        update_time = #updateTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="description" >
+        description = #description:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="creditCode" >
+        credit_code = #creditCode:VARCHAR#
+      </isNotNull>
+    </dynamic>
+    where id = #id:INTEGER#
+  </update>
+  <update id="updateByPrimaryKey" parameterClass="cn.emagsoftware.xfb.pojo.CreditModel" >
+    update t_credit_model
+    set credit_name = #creditName:VARCHAR#,
+      credit_score = #creditScore:REAL#,
+      type_order = #typeOrder:INTEGER#,
+      parent_id = #parentId:INTEGER#,
+      type_path = #typePath:VARCHAR#,
+      create_userid = #createUserid:INTEGER#,
+      create_time = #createTime:TIMESTAMP#,
+      update_userid = #updateUserid:INTEGER#,
+      update_time = #updateTime:TIMESTAMP#,
+      description = #description:VARCHAR#,
+      credit_code = #creditCode:VARCHAR#
+    where id = #id:INTEGER#
+  </update>
+
+    <select id="getCreditModel" resultClass="cn.emagsoftware.xfb.pojo.CreditModel">
+        select
+        <include refid="t_credit_model.Bean_Column_List" />
+        from t_credit_model
+    </select>
+
+
+    <select id="getCreditModelByType" resultClass="cn.emagsoftware.xfb.pojo.CreditModel" parameterClass="cn.emagsoftware.xfb.pojo.CreditModel">
+        select
+        <include refid="t_credit_model.Bean_Column_List" />
+        from t_credit_model
+        where  type_path =  #typePath:VARCHAR#
+    </select>
+</sqlMap>

@@ -1,0 +1,40 @@
+/**
+ * @(#)MemberInfoService.java	1.0	2015-8-12
+ * Copyright 2014 [天尧], Inc. All rights reserved.
+ * Website: http://www.tyiti.com/
+ */
+package cn.tyiti.xfb.service;
+
+import cn.tyiti.xfb.bojo.MemberInfo;
+
+/**
+ * 提升额度-获取个人信息/提升额度-提交个人信息 Service.
+ * 
+ * @version 1.0 2015-8-12
+ * @author Black
+ */
+public interface MemberInfoService {
+	/**
+	 * 
+	 * 获取数据.
+	 * @author Black
+	 * @date 2015-8-12 下午4:55:18
+	 *
+	 * @param memberInfo
+	 * @return
+	 * @throws Exception
+	 */
+	MemberInfo getMemberInfo(MemberInfo memberInfo) throws Exception;
+	
+	/**
+	 * 
+	 * 提交个人信息.
+	 * @author Black
+	 * @date 2015-8-14 上午11:48:17
+	 *
+	 * @param memberInfo
+	 * @return
+	 * @throws Exception
+	 */
+	int saveMemberInfo(MemberInfo memberInfo) throws Exception;
+}

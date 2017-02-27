@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="memberinfo" >
+  <resultMap id="BaseResultMap" class="cn.tyiti.xfb.bojo.MemberInfo" >
+    <result column="id" property="id" jdbcType="INTEGER" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="card_number" property="cardNumber" jdbcType="VARCHAR" />
+    <result column="province" property="province" jdbcType="VARCHAR" />
+    <result column="city" property="city" jdbcType="VARCHAR" />
+    <result column="county" property="county" jdbcType="VARCHAR" />
+    <result column="address" property="address" jdbcType="VARCHAR" />
+    <result column="verify_state" property="verifyState" jdbcType="VARCHAR" />
+  </resultMap>
+
+  <select id="getMemberInfo" resultMap="BaseResultMap" parameterClass="cn.tyiti.xfb.bojo.MemberInfo" >
+	  SELECT
+		mi.id,
+		su.real_name as name,
+		mi.card_number,
+		mi.province,
+		mi.city,
+		mi.county,
+		mi.address,
+		mi.verify_state
+	FROM
+		t_member_info mi join t_sys_user su on mi.user_id=su.id
+	WHERE
+		mi.id = #id:INTEGER#
+	AND su.id = #userId:INTEGER#
+  </select>
+  <update id="saveMemberInfo" parameterClass="cn.tyiti.xfb.bojo.MemberInfo" >
+    update t_member_info
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="province" >
+        province = #province:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="city" >
+        city = #city:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="county" >
+        county = #county:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="address" >
+        address = #address:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="verifyState" >
+        verify_state = #verifyState:VARCHAR#
+      </isNotNull>
+    </dynamic>
+    where id = #id:INTEGER#
+  </update>
+  <!-- 注册后更新推荐人额度 -->
+  	<update id="updateCredit" parameterClass="java.util.Map">
+		update t_member_info 
+		set use_sum = (use_sum+#limit#-credit_sum),
+		credit_sum = #limit#
+		where user_id = #userid#
+	</update>
+	
+  <!-- 根据用户ID查询授信拦截地址（商户地址） shenwu  -->
+  <select id="getPartnerBaseInfo" resultClass="cn.tyiti.xfb.bojo.ProfessionInfo" parameterClass="java.lang.String" >
+  	SELECT 
+  		tpb.location_province AS locationProvince, tpb.partner_addr AS partnerAddr
+  	FROM
+  		(
+	  		SELECT
+	  			tsu.recom_code
+	  		FROM
+	  			t_sys_user tsu
+	  		WHERE
+	  			tsu.id = #uId#
+  		) t1
+  	LEFT JOIN t_partner_baseinfo tpb ON tpb.login_name = t1.recom_code
+  </select>
+  
+  <!-- 	插入审核日志 -->
+  <insert id="saveVerifyLogInfo" parameterClass="cn.tyiti.xfb.bojo.VerifyLogInfo">
+   	INSERT INTO t_verify_log (
+ 		by_verify_userid,
+ 		verify_time,
+ 		verify_state,
+ 		content
+ 	) VALUES (#userid#, NOW(), "A9", "自动拒绝")
+  </insert>
+  
+  <!-- 更新用户状态 -->
+  <update id="updateUserStatus" parameterClass="java.lang.Integer">
+ 		update t_sys_user su set  
+			 su.status = 6
+		where
+		 su.id = #uId:INTEGER#
+  </update>
+  
+</sqlMap>

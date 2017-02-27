@@ -1,0 +1,102 @@
+/**
+ * @(#)MemberInfoDaoImpl.java	1.0	2015-8-12
+ * Copyright 2014 [天尧], Inc. All rights reserved.
+ * Website: http://www.tyiti.com/
+ */
+package cn.tyiti.xfb.dao.impl;
+
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import cn.emagsoftware.frame.dao.BaseDao;
+import cn.tyiti.xfb.bojo.CellphoneParameterInfo;
+import cn.tyiti.xfb.bojo.MemberInfo;
+import cn.tyiti.xfb.bojo.ProfessionInfo;
+import cn.tyiti.xfb.bojo.VerifyLogInfo;
+import cn.tyiti.xfb.dao.MemberInfoDao;
+
+/**
+ * 提升额度-获取个人信息/提升额度-提交个人信息Dao Impl.
+ * 
+ * @version 1.0 2015-8-12
+ * @author Black
+ */
+@Repository("memberInfoDao")
+public class MemberInfoDaoImpl extends BaseDao implements MemberInfoDao {
+
+	/* （non-Javadoc）
+	 * <p>Title: getMemberInfo</p>
+	 * <p>Description: </p>
+	 * @param userId
+	 * @return
+	 * @throws Exception
+	 * @see cn.tyiti.xfb.dao.MemberInfoDao#getMemberInfo(java.lang.Integer)
+	 */
+	@Override
+	public MemberInfo getMemberInfo(MemberInfo memberInfo) throws Exception {
+		// TODO Auto-generated method stub
+		return (MemberInfo) this.getSqlMapClientTemplate().queryForObject("memberinfo.getMemberInfo", memberInfo);
+	}
+
+	/* （non-Javadoc）
+	 * <p>Title: saveMemberInfo</p>
+	 * <p>Description: </p>
+	 * @param memberInfo
+	 * @return
+	 * @throws Exception
+	 * @see cn.tyiti.xfb.dao.MemberInfoDao#saveMemberInfo(cn.tyiti.xfb.bojo.MemberInfo)
+	 */
+	@Override
+	public int saveMemberInfo(MemberInfo memberInfo) throws Exception {
+		return getSqlMapClientTemplate().update("memberinfo.saveMemberInfo", memberInfo);
+	}
+	
+	/**
+	 * 保存头信息，手机相关参数
+	 */
+	@Override
+	public int saveCellphoneParameterInfo(CellphoneParameterInfo cellphoneParameterInfo) throws Exception {
+		return getSqlMapClientTemplate().update("memberinfo.saveCellphoneParameterInfo", cellphoneParameterInfo);
+	}
+
+	@Override
+	public int updateCredit(Map<String, Integer> map) throws Exception {
+		return getSqlMapClientTemplate().update("memberinfo.updateCredit", map);
+	}
+	
+	/**
+	 * 
+	 * 名称：getPartnerBaseInfo <br/>
+	 * 描述：根据用户ID查询授信拦截地址（商户地址） <br/>
+	 * @author shenwu
+	 * @date 2015年11月23日15:41:47
+	 * @return
+	 */
+	@Override
+    public ProfessionInfo getPartnerBaseInfo(String uId) throws Exception {
+		return (ProfessionInfo) this.getSqlMapClientTemplate().queryForObject("memberinfo.getPartnerBaseInfo",uId);
+    }
+	
+	/**
+	 * 地址不相同增加审核日志
+	 * @author shenwu
+	 * @date 2015年11月23日16:38:49
+	 * @return
+	 */
+	@Override
+	public int saveVerifyLogInfo(VerifyLogInfo verifyLogInfo) throws Exception {
+		return getSqlMapClientTemplate().update("memberinfo.saveVerifyLogInfo", verifyLogInfo);
+	}
+
+	/**
+	 * 自动拦截之后，修改用户状态
+	 * @param uId
+	 * @throws Exception
+	 */
+	@Override
+	public int updateUserStatus(Integer uId) throws Exception {
+		return getSqlMapClientTemplate().update("memberinfo.updateUserStatus", uId);
+	}
+	
+}

@@ -1,0 +1,100 @@
+package cn.emagsoftware.xfb.dto;
+
+import cn.emagsoftware.frame.bean.BaseRspBean;
+import cn.emagsoftware.xfb.pojo.MemberInfo;
+import cn.emagsoftware.xfb.pojo.UserAuthinfo;
+
+import java.util.List;
+
+/**
+ * 信用分列表
+ *
+ */
+public class ScoreListRsp extends BaseRspBean {
+	//总额度
+	private Float creditSum;
+	//已使用额度
+	private Float useSum;
+	//审批退回数量
+	private String returnNum;
+	//待确认订单数量
+	private String confirmOrderNum;
+	
+	//近7日待还数量
+	private String tSevenBillNum ;
+	
+	public String gettSevenBillNum() {
+		return tSevenBillNum;
+	}
+	public void settSevenBillNum(String tSevenBillNum) {
+		this.tSevenBillNum = tSevenBillNum;
+	}
+	public Float getCreditSum() {
+		return creditSum;
+	}
+	public void setCreditSum(Float creditSum) {
+		this.creditSum = creditSum;
+	}
+	public Float getUseSum() {
+		return useSum;
+	}
+	public void setUseSum(Float useSum) {
+		this.useSum = useSum;
+	}
+	public String getReturnNum() {
+		return returnNum;
+	}
+	public void setReturnNum(String returnNum) {
+		this.returnNum = returnNum;
+	}
+	public String getConfirmOrderNum() {
+		return confirmOrderNum;
+	}
+	public void setConfirmOrderNum(String confirmOrderNum) {
+		this.confirmOrderNum = confirmOrderNum;
+	}
+	
+	
+    /*private MemberInfo memberInfo;
+
+
+    private Long page;
+
+    private Integer scoreListSize;
+
+    private Integer scoreTotal;
+
+
+
+    public Integer getScoreListSize() {
+        return scoreListSize;
+    }
+
+    public void setScoreListSize(Integer scoreListSize) {
+        this.scoreListSize = scoreListSize;
+    }
+
+    public Integer getScoreTotal() {
+        return scoreTotal;
+    }
+
+    public void setScoreTotal(Integer scoreTotal) {
+        this.scoreTotal = scoreTotal;
+    }
+
+    public Long getPage() {
+        return page;
+    }
+
+    public void setPage(Long page) {
+        this.page = page;
+    }
+
+    public MemberInfo getMemberInfo() {
+        return memberInfo;
+    }
+
+    public void setMemberInfo(MemberInfo memberInfo) {
+        this.memberInfo = memberInfo;
+    }*/
+}

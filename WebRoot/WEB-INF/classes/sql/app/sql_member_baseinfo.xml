@@ -1,0 +1,542 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="t_member_baseinfo" >
+  <resultMap id="BaseResultMap" class="cn.emagsoftware.xfb.pojo.MemberInfo" >
+    <result column="id" property="id" jdbcType="INTEGER" />
+    <result column="sys_userid" property="sysUserid" jdbcType="INTEGER" />
+    <result column="credit_sum" property="creditSum" jdbcType="REAL" />
+    <result column="use_sum" property="useSum" jdbcType="REAL" />
+    <result column="is_use" property="isUse" jdbcType="INTEGER" />
+    <result column="province" property="province" jdbcType="VARCHAR" />
+    <result column="city" property="city" jdbcType="VARCHAR" />
+    <result column="location_province" property="locationProvince" jdbcType="VARCHAR" />
+    <result column="location_city" property="locationCity" jdbcType="VARCHAR" />
+    <result column="ID_number" property="idNumber" jdbcType="VARCHAR" />
+    <result column="age" property="age" jdbcType="INTEGER" />
+    <result column="sex" property="sex" jdbcType="INTEGER" />
+    <result column="card_bank" property="cardBank" jdbcType="VARCHAR" />
+    <result column="card_num" property="cardNum" jdbcType="VARCHAR" />
+    <result column="card_account" property="cardAccount" jdbcType="VARCHAR" />
+    <result column="pay_way" property="payWay" jdbcType="INTEGER" />
+    <result column="pay_account" property="payAccount" jdbcType="VARCHAR" />
+    <result column="user_type" property="userType" jdbcType="INTEGER" />
+    <result column="image_path1" property="imagePath1" jdbcType="VARCHAR" />
+    <result column="image_path2" property="imagePath2" jdbcType="VARCHAR" />
+    <result column="image_path3" property="imagePath3" jdbcType="VARCHAR" />
+    <result column="create_userid" property="createUserid" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="is_verify" property="isVerify" jdbcType="INTEGER" />
+    <result column="operator" property="operator" jdbcType="INTEGER" />
+    <result column="operate_time" property="operateTime" jdbcType="TIMESTAMP" />
+    <result column="update_userid" property="updateUserid" jdbcType="INTEGER" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="user_description" property="userDescription" jdbcType="VARCHAR" />
+
+    <result column="submit_time" property="submitTime" jdbcType="TIMESTAMP" />
+    <result column="credit_score" property="creditScore" jdbcType="REAL" />
+    <result column="verify_status" property="verifyStatus" jdbcType="INTEGER" />
+    <result column="area" property="area" jdbcType="VARCHAR" />
+    <result column="location_area" property="locationArea" jdbcType="VARCHAR" />
+    <result column="credit_id" property="creditId" jdbcType="INTEGER" />
+
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, sys_userid, credit_sum, use_sum, is_use, province, city, location_province, location_city, 
+    ID_number, age, sex, card_bank, card_num, card_account, pay_way, pay_account, user_type, 
+    image_path1, image_path2, image_path3, create_userid, create_time, is_verify, operator, 
+    operate_time, update_userid, update_time, user_description,submit_time,credit_score,area,location_area,credit_id,verify_status
+  </sql>
+
+
+    <sql id="Bean_Column_List" >
+        id,
+        sys_userid sysUserid,
+        credit_sum creditSum,
+        use_sum useSum,
+        is_use isUse,
+        province,
+        city,
+        location_province locationProvince,
+        location_city locationCity,
+        ID_number IDNumber,
+        age,
+        sex,
+        card_bank cardBank,
+        card_num cardNum,
+        card_account cardAccount,
+        pay_way payWay,
+        pay_account payAccount,
+        user_type userType,
+        image_path1 imagePath1,
+        image_path2 imagePath2,
+        image_path3 imagePath3,
+        create_userid createUserid,
+        create_time createTime,
+        is_verify isVerify,
+        operator,
+        operate_time operateTime,
+        update_userid updateUserid,
+        update_time updateTime,
+        user_description  userDescription,
+        submit_time submitTime,
+        credit_score creditScore,
+        area,
+        location_area locationArea,
+        credit_id creditId,
+        verify_status verifyStatus
+    </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterClass="cn.emagsoftware.xfb.pojo.MemberInfo" >
+    select 
+    <include refid="t_member_baseinfo.Base_Column_List" />
+    from t_member_baseinfo
+    where id = #id:INTEGER#
+  </select>
+  <delete id="deleteByPrimaryKey" parameterClass="cn.emagsoftware.xfb.pojo.MemberInfo" >
+    delete from t_member_baseinfo
+    where id = #id:INTEGER#
+  </delete>
+  <insert id="insert" parameterClass="cn.emagsoftware.xfb.pojo.MemberInfo" >
+			  INSERT INTO t_member_info (
+					id,
+					user_id,
+					credit_sum,
+					use_sum,
+					province,
+					city,
+					county,
+					card_number
+					)
+					VALUES
+					(
+						#id:INTEGER#, #sysUserid:INTEGER#, #creditSum:REAL#, #useSum:REAL#,
+						#province:VARCHAR#, #city:VARCHAR#, #county:VARCHAR#, #idNumber:VARCHAR#
+					) 
+	
+  </insert>
+  <insert id="insertSelective" parameterClass="cn.emagsoftware.xfb.pojo.MemberInfo" >
+    insert into t_member_baseinfo
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        id
+      </isNotNull>
+      <isNotNull prepend="," property="sysUserid" >
+        sys_userid
+      </isNotNull>
+      <isNotNull prepend="," property="creditSum" >
+        credit_sum
+      </isNotNull>
+      <isNotNull prepend="," property="useSum" >
+        use_sum
+      </isNotNull>
+      <isNotNull prepend="," property="isUse" >
+        is_use
+      </isNotNull>
+      <isNotNull prepend="," property="province" >
+        province
+      </isNotNull>
+      <isNotNull prepend="," property="city" >
+        city
+      </isNotNull>
+      <isNotNull prepend="," property="locationProvince" >
+        location_province
+      </isNotNull>
+      <isNotNull prepend="," property="locationCity" >
+        location_city
+      </isNotNull>
+      <isNotNull prepend="," property="idNumber" >
+        ID_number
+      </isNotNull>
+      <isNotNull prepend="," property="age" >
+        age
+      </isNotNull>
+      <isNotNull prepend="," property="sex" >
+        sex
+      </isNotNull>
+      <isNotNull prepend="," property="cardBank" >
+        card_bank
+      </isNotNull>
+      <isNotNull prepend="," property="cardNum" >
+        card_num
+      </isNotNull>
+      <isNotNull prepend="," property="cardAccount" >
+        card_account
+      </isNotNull>
+      <isNotNull prepend="," property="payWay" >
+        pay_way
+      </isNotNull>
+      <isNotNull prepend="," property="payAccount" >
+        pay_account
+      </isNotNull>
+      <isNotNull prepend="," property="userType" >
+        user_type
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath1" >
+        image_path1
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath2" >
+        image_path2
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath3" >
+        image_path3
+      </isNotNull>
+      <isNotNull prepend="," property="createUserid" >
+        create_userid
+      </isNotNull>
+      <isNotNull prepend="," property="createTime" >
+        create_time
+      </isNotNull>
+      <isNotNull prepend="," property="isVerify" >
+        is_verify
+      </isNotNull>
+      <isNotNull prepend="," property="operator" >
+        operator
+      </isNotNull>
+      <isNotNull prepend="," property="operateTime" >
+        operate_time
+      </isNotNull>
+      <isNotNull prepend="," property="updateUserid" >
+        update_userid
+      </isNotNull>
+      <isNotNull prepend="," property="updateTime" >
+        update_time
+      </isNotNull>
+      <isNotNull prepend="," property="userDescription" >
+        user_description
+      </isNotNull>
+      )
+    </dynamic>
+    values
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        #id:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="sysUserid" >
+        #sysUserid:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="creditSum" >
+        #creditSum:REAL#
+      </isNotNull>
+      <isNotNull prepend="," property="useSum" >
+        #useSum:REAL#
+      </isNotNull>
+      <isNotNull prepend="," property="isUse" >
+        #isUse:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="province" >
+        #province:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="city" >
+        #city:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="locationProvince" >
+        #locationProvince:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="locationCity" >
+        #locationCity:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="idNumber" >
+        #idNumber:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="age" >
+        #age:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="sex" >
+        #sex:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="cardBank" >
+        #cardBank:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="cardNum" >
+        #cardNum:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="cardAccount" >
+        #cardAccount:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="payWay" >
+        #payWay:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="payAccount" >
+        #payAccount:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="userType" >
+        #userType:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath1" >
+        #imagePath1:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath2" >
+        #imagePath2:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath3" >
+        #imagePath3:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="createUserid" >
+        #createUserid:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="createTime" >
+        #createTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="isVerify" >
+        #isVerify:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="operator" >
+        #operator:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="operateTime" >
+        #operateTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="updateUserid" >
+        #updateUserid:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="updateTime" >
+        #updateTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="userDescription" >
+        #userDescription:VARCHAR#
+      </isNotNull>
+      )
+    </dynamic>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterClass="cn.emagsoftware.xfb.pojo.MemberInfo" >
+    update t_member_baseinfo
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="sysUserid" >
+        sys_userid = #sysUserid:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="creditSum" >
+        credit_sum = #creditSum:REAL#
+      </isNotNull>
+      <isNotNull prepend="," property="useSum" >
+        use_sum = #useSum:REAL#
+      </isNotNull>
+      <isNotNull prepend="," property="isUse" >
+        is_use = #isUse:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="province" >
+        province = #province:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="city" >
+        city = #city:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="locationProvince" >
+        location_province = #locationProvince:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="locationCity" >
+        location_city = #locationCity:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="idNumber" >
+        ID_number = #idNumber:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="age" >
+        age = #age:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="sex" >
+        sex = #sex:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="cardBank" >
+        card_bank = #cardBank:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="cardNum" >
+        card_num = #cardNum:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="cardAccount" >
+        card_account = #cardAccount:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="payWay" >
+        pay_way = #payWay:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="payAccount" >
+        pay_account = #payAccount:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="userType" >
+        user_type = #userType:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath1" >
+        image_path1 = #imagePath1:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath2" >
+        image_path2 = #imagePath2:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath3" >
+        image_path3 = #imagePath3:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="createUserid" >
+        create_userid = #createUserid:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="createTime" >
+        create_time = #createTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="isVerify" >
+        is_verify = #isVerify:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="operator" >
+        operator = #operator:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="operateTime" >
+        operate_time = #operateTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="updateUserid" >
+        update_userid = #updateUserid:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="updateTime" >
+        update_time = #updateTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="userDescription" >
+        user_description = #userDescription:VARCHAR#
+      </isNotNull>
+    </dynamic>
+    where id = #id:INTEGER#
+  </update>
+  <update id="updateByPrimaryKey" parameterClass="cn.emagsoftware.xfb.pojo.MemberInfo" >
+    update t_member_baseinfo
+    set sys_userid = #sysUserid:INTEGER#,
+      credit_sum = #creditSum:REAL#,
+      use_sum = #useSum:REAL#,
+      is_use = #isUse:INTEGER#,
+      province = #province:VARCHAR#,
+      city = #city:VARCHAR#,
+      location_province = #locationProvince:VARCHAR#,
+      location_city = #locationCity:VARCHAR#,
+      ID_number = #idNumber:VARCHAR#,
+      age = #age:INTEGER#,
+      sex = #sex:INTEGER#,
+      card_bank = #cardBank:VARCHAR#,
+      card_num = #cardNum:VARCHAR#,
+      card_account = #cardAccount:VARCHAR#,
+      pay_way = #payWay:INTEGER#,
+      pay_account = #payAccount:VARCHAR#,
+      user_type = #userType:INTEGER#,
+      image_path1 = #imagePath1:VARCHAR#,
+      image_path2 = #imagePath2:VARCHAR#,
+      image_path3 = #imagePath3:VARCHAR#,
+      create_userid = #createUserid:INTEGER#,
+      create_time = #createTime:TIMESTAMP#,
+      is_verify = #isVerify:INTEGER#,
+      operator = #operator:INTEGER#,
+      operate_time = #operateTime:TIMESTAMP#,
+      update_userid = #updateUserid:INTEGER#,
+      update_time = #updateTime:TIMESTAMP#,
+      user_description = #userDescription:VARCHAR#
+    where id = #id:INTEGER#
+  </update>
+
+    <update id="updateScore" parameterClass="cn.emagsoftware.xfb.pojo.MemberInfo" >
+        update t_member_info
+        set
+        credit_sum = #creditSum:REAL#+credit_sum,
+        use_sum = #useSum:REAL#+use_sum
+        where user_id =  #sysUserid:INTEGER#
+    </update>
+
+    <select id="getMemerByUserid" resultClass="cn.emagsoftware.xfb.pojo.MemberInfo" parameterClass="cn.emagsoftware.xfb.pojo.MemberInfo" >
+        select
+        	id, 
+        	user_id sysUserid,
+        	credit_sum creditSum,
+        	use_sum useSum,
+        	card_number idNumber,
+        	province,
+        	city,
+        	county
+        from t_member_info
+        where user_id = #sysUserid:INTEGER#
+    </select>
+    <update id="updateUseScore" parameterClass="cn.emagsoftware.xfb.pojo.MemberInfo" >
+        update t_member_info
+        set
+        use_sum = #useSum:REAL#+use_sum
+        where user_id =  #sysUserid:INTEGER#
+    </update>
+
+
+    <select id="getMemerByCardId" resultClass="cn.emagsoftware.xfb.pojo.MemberInfo" parameterClass="cn.emagsoftware.xfb.pojo.MemberInfo" >
+        select
+        <include refid="t_member_baseinfo.Bean_Column_List" />
+        from t_member_info
+        where  card_number = #idNumber:VARCHAR#
+    </select>
+
+
+    <update id="updateImagePathByUserId" parameterClass="cn.emagsoftware.xfb.pojo.MemberInfo" >
+        update t_member_baseinfo
+        <dynamic prepend="set" >
+            <isNotNull prepend="," property="imagePath1" >
+                image_path1 = #imagePath1:VARCHAR#
+            </isNotNull>
+            <isNotNull prepend="," property="imagePath2" >
+                image_path2 = #imagePath2:VARCHAR#
+            </isNotNull>
+            <isNotNull prepend="," property="imagePath3" >
+                image_path3 = #imagePath3:VARCHAR#
+            </isNotNull>
+        </dynamic>
+        where sys_userid =  #sysUserid:INTEGER#
+    </update>
+
+
+    <update id="updateScoreAndInfo" parameterClass="cn.emagsoftware.xfb.pojo.MemberInfo" >
+        update t_member_baseinfo
+        <dynamic prepend="set" >
+            province = #province:VARCHAR#,
+            city = #city:VARCHAR#,
+            location_province = #locationProvince:VARCHAR#,
+            location_city = #locationCity:VARCHAR#,
+            card_bank = #cardBank:VARCHAR#,
+            card_num = #cardNum:VARCHAR#,
+            card_account = #cardAccount:VARCHAR#,
+            is_verify = 1,
+            update_userid = #sysUserid:INTEGER#,
+            update_time = now(),
+            user_description = #userDescription:VARCHAR#,
+            submit_time =  now(),
+            credit_score = #creditScore#,
+            area = #area#,
+            location_area = #locationArea#,
+            credit_id = #creditId#,
+            verify_status = 0
+        </dynamic>
+        where sys_userid =  #sysUserid:INTEGER#
+    </update>
+
+
+    <select id="userAuthinfoList" resultClass="cn.emagsoftware.xfb.pojo.UserAuthinfo" parameterClass="cn.emagsoftware.xfb.pojo.UserAuthinfo">
+        select 8 type,submit_time submitTime,is_verify isVerify,verify_status verifyStatus,sys_userid sysUserid from t_sina_authinfo
+        where sys_userid=#sysUserid#
+        union all
+        select 10 type,submit_time submitTime,is_verify isVerify,verify_status verifyStatus,sys_userid sysUserid from t_qq_authinfo
+        where sys_userid=#sysUserid#
+        union all
+        select 9 type,submit_time submitTime,is_verify isVerify,verify_status verifyStatus,sys_userid sysUserid from t_taobao_authinfo
+        where sys_userid=#sysUserid#
+        union all
+        select 1 type,submit_time submitTime,is_verify isVerify,verify_status verifyStatus,sys_userid sysUserid from t_member_baseinfo
+        where sys_userid=#sysUserid# and credit_id is not null and credit_id!=0
+        union all
+        select 7 type,submit_time submitTime,is_verify isVerify,verify_status verifyStatus,sys_userid sysUserid from t_xuexing_authinfo
+        where sys_userid=#sysUserid#
+        union all
+        select  6 type,submit_time submitTime,is_verify isVerify,verify_status verifyStatus,sys_userid sysUserid from t_bluecard_authinfo
+        where sys_userid=#sysUserid#
+        union all
+        select 5 type,submit_time submitTime,is_verify isVerify,verify_status verifyStatus,sys_userid sysUserid from t_marry_authinfo
+        where sys_userid=#sysUserid#
+        union all
+        select 3 type,submit_time submitTime,is_verify isVerify,verify_status verifyStatus,sys_userid sysUserid from t_jobcert_authinfo
+        where sys_userid=#sysUserid#
+        union all
+        select 4 type,submit_time submitTime,is_verify isVerify,verify_status verifyStatus,sys_userid sysUserid from t_drive_authinfo
+        where sys_userid=#sysUserid#
+        union all
+        select 2 type,submit_time submitTime,is_verify isVerify,verify_status verifyStatus,sys_userid sysUserid from t_email_authinfo
+        where sys_userid=#sysUserid#
+    </select>
+
+
+
+    <update id="updateUserType" parameterClass="cn.emagsoftware.xfb.pojo.SysUser" >
+        update t_member_baseinfo
+        set user_type=2
+        where sys_userid =  #id:INTEGER#
+    </update>
+
+</sqlMap>

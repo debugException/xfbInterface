@@ -1,0 +1,134 @@
+package cn.tyiti.xfb.controller;
+
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import cn.emagsoftware.frame.bean.BaseRspBean;
+import cn.emagsoftware.frame.controller.BaseController;
+import cn.emagsoftware.utils.Constant;
+import cn.emagsoftware.utils.json.JsonUtils;
+import cn.tyiti.xfb.bojo.ContactInfo;
+import cn.tyiti.xfb.service.ContactInfoService;
+import cn.tyiti.xfb.utils.UnicodeUtil;
+
+@Controller
+@RequestMapping(value = "/contactInfo")
+public class ContactInfoController  extends BaseController {
+	@Autowired
+	private ContactInfoService contactInfoService;
+	
+	 	@RequestMapping(value = "/saveContactInfo", method = {RequestMethod.POST, RequestMethod.GET})
+	    public String addOrUpdateContactInfo(Map<String, String> model) throws UnsupportedEncodingException {
+		 	log.info("联系人操作开始");
+		 	BaseRspBean response = new BaseRspBean();
+	        List<ContactInfo> contactInfoList = this.getContactInfoListParam();
+	        //如果为空不做处理。直接返回。
+	        /*if (contactInfoList == null) {
+	        	response.setCodeAndMsg(ContactInfoConstant.ERROR_CODE_2000, ContactInfoConstant.ERROR_MESSAGE.get(ContactInfoConstant.ERROR_CODE_2000));
+	        	model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+		        return RET_JSP;
+	        }*/
+	        try {	
+	        		//只判断第一个，有值则所有的id都有值，反之，都没有值。
+	        		//如果为true，则执行增加，反之执行更新操作
+	        		//if (CommonUtils.isEmptyByObj(contactInfoList.get(0).getId())) {
+	        			//log.info("执行增加逻辑并修改自身与基本认证上两步的状态为审核中");
+	        			contactInfoService.addContactInfo(contactInfoList);
+	        		//} else {
+	        			//contactInfoService.updateContactInfoById(contactInfoList);
+	        			
+	        		//}
+
+        	        //成功设置
+        			response.setCodeAndMsg(Constant.SUCCESS_CODE,Constant.ERROR_MESSAGE.get(Constant.SUCCESS_CODE));
+	        } catch (Exception ex) {
+	        	ex.printStackTrace();
+	            log.error("联系人操作失败", ex);
+	            response.setResultCode(Constant.ERROR_CODE_9999);
+	        }
+	        /*log.info("联系人结束");
+		    response.setResultMessage(ContactInfoConstant.ERROR_MESSAGE.get(response.getResultCode()));*/
+		    model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+		    log.debug("BillStageController.billList.response=="+JsonUtils.getJSONString(response));
+	        return RET_JSP;
+	    }
+	 /**
+	  * 获取联系人列表
+	  * @return
+	  */
+	 @RequestMapping(value = "/getContactInfo", method = {RequestMethod.POST, RequestMethod.GET})
+	 public String getContactInfoList(Map<String, String> model) throws UnsupportedEncodingException {
+		 log.info("获取联系人列表开始");
+		 Map<String, Object> response = new HashMap<String, Object>();
+		 try {
+			Integer userId = super.getUserId();
+			log.info("<<<<<<<<<<<<<<<requestParam>>>>>>>>>>>>>>>>>>");
+        	log.info("请求的联系人信息为：+[id="+userId+"]");
+			List<ContactInfo> contactInfoList = contactInfoService.getContactInfoListByUserId(userId);
+			/*List<Map<String,Object>> contactList = new ArrayList<Map<String,Object>>();
+			if (contactInfoList.isEmpty() || contactInfoList.size() == 0) {
+				response.setResultCode(ContactInfoConstant.ERROR_CODE_2001);
+			}else {
+				for (ContactInfo contactInfo : contactInfoList) {
+					Map<String, Object> contactData = new HashMap<String, Object>();
+					contactData.put("id", 			contactInfo.getId());
+					contactData.put("userId", 		contactInfo.getUserId());
+					contactData.put("contactName",  contactInfo.getContactName());
+					contactData.put("contactPhone", contactInfo.getContactPhone());
+					contactData.put("type", 		contactInfo.getType());	
+					contactData.put("relationship", contactInfo.getRelationship());
+					contactData.put("verifyState", 	contactInfo.getVerifyState());
+					contactList.add(contactData);
+				}
+			}*/
+			//成功设置
+			response.put(Constant.SUCCESS_CODE,Constant.ERROR_MESSAGE.get(Constant.SUCCESS_CODE));
+			response.put("contactList", contactInfoList);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			log.error("获取联系人列表失败",e);
+            response.put(Constant.ERROR_CODE_9999, Constant.ERROR_MESSAGE.get(Constant.ERROR_CODE_9999));
+		}
+	     model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+	     log.debug("BillStageController.billList.response=="+JsonUtils.getJSONString(response));
+		 return RET_JSP;
+	 }
+	 	
+	 //获取请求数据
+	 @SuppressWarnings("rawtypes")
+	 private List<ContactInfo> getContactInfoListParam(){
+		 List<ContactInfo> contactInfolist = new ArrayList<ContactInfo>();
+	        try {
+	        	String tempParam= UnicodeUtil.convert(request.getParameter("contactInfo"));
+	        	JSONArray contactArray = JSONArray.fromObject(tempParam);
+	        	log.info("<<<<<<<<<<<<<<<requestParam>>>>>>>>>>>>>>>>>>");
+	        	log.info("请求的联系人信息为："+contactArray.toString());
+				Iterator iterator = contactArray.iterator();
+				while(iterator.hasNext()){
+//					ContactInfo contactInfo = new ContactInfo();
+					JSONObject contactObject = JSONObject.fromObject(iterator.next());
+					ContactInfo contactInfo = (ContactInfo) JSONObject.toBean(contactObject, ContactInfo.class);
+					contactInfo.setUserId(super.getUserId());
+					contactInfolist.add(contactInfo);
+	        	}
+	        } catch (Exception ex) {
+	        	log.info("<<<<<<<<<<<<<<<requestParam转化出错>>>>>>>>>>>>>>>>>>");
+	            log.error("请求联系人信息转换错误" + ex.getMessage(), ex);
+	            contactInfolist = null;
+	        }
+	        return contactInfolist;
+	    }
+}

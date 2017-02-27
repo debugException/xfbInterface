@@ -1,0 +1,395 @@
+package cn.emagsoftware.xfb.controller;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import net.rubyeye.xmemcached.MemcachedClient;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import cn.emagsoftware.frame.bean.WeChatRsp;
+import cn.emagsoftware.frame.controller.BaseController;
+import cn.emagsoftware.frame.log4j.ILog;
+import cn.emagsoftware.frame.log4j.Logger;
+import cn.emagsoftware.utils.CommonUtils;
+import cn.emagsoftware.utils.Constant;
+import cn.emagsoftware.utils.GetWxOrderno;
+import cn.emagsoftware.utils.RequestHandler;
+import cn.emagsoftware.utils.WcfCallUtils;
+import cn.emagsoftware.utils.json.JsonUtils;
+import cn.emagsoftware.xfb.constants.AppConstants;
+import cn.emagsoftware.xfb.pojo.BillStage;
+import cn.emagsoftware.xfb.pojo.MemberInfo;
+import cn.emagsoftware.xfb.pojo.OrderInfo;
+import cn.emagsoftware.xfb.pojo.WeChat;
+import cn.emagsoftware.xfb.service.BillStageService;
+import cn.emagsoftware.xfb.service.MemberInfoService;
+import cn.emagsoftware.xfb.service.OrderService;
+import cn.tyiti.xfb.bojo.PayRecode;
+import cn.tyiti.xfb.service.IPayRecodeService;
+
+
+/**
+*      
+* 项目名称：xfbInterface     
+* 类名称：WeChatPayController     
+* 类描述：     微信支付接口
+* 创建人：shenzhiqiang    
+* 创建时间：2015-11-16 上午10:44:51       
+* @version      
+*
+ */
+@Controller
+@RequestMapping(value = "/weChatPay")
+public class WeChatPayController extends BaseController {
+	
+	@Logger
+    protected static ILog log;
+	
+	@Autowired
+    private BillStageService billStageService;
+	
+    @Autowired
+    private OrderService orderService;
+
+    @Autowired
+    private MemberInfoService memberInfoService;
+
+    @Autowired
+    private MemcachedClient memcachedClient;
+    
+    @Autowired
+    private WcfCallUtils wcfCallUtils;
+    
+    @Autowired
+	private IPayRecodeService payRecodeService;
+	
+	//统一下单地址
+	public static final String WECHAT_CREATE_ORDER_URL="https://api.mch.weixin.qq.com/pay/unifiedorder";
+	
+	//订单查询
+	public static final String WECHAT_QUERY_ORDER_URL="https://api.mch.weixin.qq.com/pay/orderquery";
+	
+	//统一下单，获取预支付交易会话标识
+	@RequestMapping(value = "/createOrder", method = {RequestMethod.GET, RequestMethod.POST})
+	public String createOrder(Map<String, String> model) throws Exception{
+		log.debug("WeChatPayController.createOrder,parameter[{trade_no,subject,total_fee},{"
+                + request.getParameter("trade_no")
+                + ","
+                + request.getParameter("subject")
+                + ","
+                + request.getParameter("total_fee") + "}]");
+		
+		WeChatRsp response = new WeChatRsp();
+		WeChat weChat = new WeChat();
+
+		String orderNo = request.getParameter("trade_no");  //账单流水号
+		String money = request.getParameter("total_fee");   //账单支付金额
+		String body = request.getParameter("subject");  //商品描述根据情况修改
+
+		//金额转化为分为单位
+		float sessionmoney = Float.parseFloat(money);
+		String finalmoney = String.format("%.2f", sessionmoney);
+		finalmoney = finalmoney.replace(".", "");
+		
+		//商户相关资料 
+		String appid =  CommonUtils.getPropertiesValue("config", "appid");
+		String appsecret = CommonUtils.getPropertiesValue("config", "appsecret");
+		String partner = CommonUtils.getPropertiesValue("config", "partnerId");
+		String partnerkey = CommonUtils.getPropertiesValue("config", "partnerkey");
+		
+		//商户号
+		String mch_id = partner;
+		//随机数 
+		Random random = new Random();
+		String nonce_str = cn.emagsoftware.utils.MD5Util.getMD5String(String.valueOf(random.nextInt(10000)));
+		
+		//商户订单号
+		String out_trade_no = orderNo;
+		int intMoney = Integer.parseInt(finalmoney);
+		
+		//总金额以分为单位，不带小数点
+		int total_fee = intMoney;
+		//订单生成的机器 IP
+		String spbill_create_ip = request.getRemoteAddr();
+		System.out.println("订单生成的机器IP："+spbill_create_ip);
+		
+		//这里notify_url是 支付完成后微信发给该链接信息，可以判断会员是否支付成功，改变订单状态等。
+		String notify_url = CommonUtils.getPropertiesValue("config", "weChat_notify_url");
+		//交易类型
+		String trade_type = CommonUtils.getPropertiesValue("config", "trade_type");
+		
+		SortedMap<String, String> packageParams = new TreeMap<String, String>();
+		packageParams.put("appid", appid);  
+		packageParams.put("mch_id", mch_id);  
+		packageParams.put("nonce_str", nonce_str);  
+		packageParams.put("body", body);  
+		packageParams.put("out_trade_no", out_trade_no);  
+		
+		packageParams.put("total_fee", total_fee+"");  
+		packageParams.put("spbill_create_ip", spbill_create_ip);  
+		packageParams.put("notify_url", notify_url);  
+		
+		packageParams.put("trade_type", trade_type);  
+
+		HttpServletResponse httpServletResponse = null;
+		RequestHandler reqHandler = new RequestHandler(request, httpServletResponse);
+		reqHandler.init(appid, appsecret, partnerkey);
+		
+		//生成签名
+		String sign = reqHandler.createSign(packageParams);
+		String xml="<xml>"+
+				"<appid>"+appid+"</appid>"+
+				"<body><![CDATA["+body+"]]></body>"+
+				"<mch_id>"+mch_id+"</mch_id>"+
+				"<nonce_str>"+nonce_str+"</nonce_str>"+
+				"<notify_url>"+notify_url+"</notify_url>"+
+				"<out_trade_no>"+out_trade_no+"</out_trade_no>"+
+				"<sign>"+sign+"</sign>"+
+				"<spbill_create_ip>"+spbill_create_ip+"</spbill_create_ip>"+
+				"<total_fee>"+total_fee+"</total_fee>"+
+				"<trade_type>"+trade_type+"</trade_type>"+
+				"</xml>";
+		log.debug("xml = "+xml);
+		String createOrderURL = WECHAT_CREATE_ORDER_URL;
+		String prepay_id="";
+		//获取预支付交易会话标识
+		try {
+			prepay_id = new GetWxOrderno().getPayNo(createOrderURL, xml, "prepay_id");
+			log.info("微信返回的预支付交易会话标识：》》》》》"+prepay_id);
+		} catch (Exception e1) {
+			e1.printStackTrace();
+			response.setResultCode(Constant.ERROR_CODE_9998);
+			response.setResultMessage(Constant.ERROR_MESSAGE.get(Constant.ERROR_CODE_9998));
+		}
+		
+		if (prepay_id!=null& !prepay_id.equals("")) {
+			response.setResultCode(Constant.SUCCESS_CODE);
+			response.setResultMessage(Constant.ERROR_MESSAGE.get(Constant.SUCCESS_CODE));
+			weChat.setAppid(appid);
+			weChat.setPrepayid(prepay_id);
+			String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
+			String nonce_string = cn.emagsoftware.utils.MD5Util.getMD5String(timestamp);
+			weChat.setTimestamp(timestamp);
+			weChat.setNoncestr(nonce_string);
+			weChat.setPackages("Sign=WXPay");
+			weChat.setPartnerid(partner);
+			
+			//二次签名
+			SortedMap<String, String> finalpackage = new TreeMap<String, String>();
+			finalpackage.put("appid", appid);  
+			finalpackage.put("timestamp", timestamp);  
+			finalpackage.put("noncestr", nonce_string);  
+			finalpackage.put("package", "Sign=WXPay");  
+			finalpackage.put("partnerid", mch_id);
+			finalpackage.put("prepayid", prepay_id);
+			String finalsign = reqHandler.createSign(finalpackage);
+			weChat.setSign(finalsign);
+			response.setData(weChat);
+		}else {
+			log.debug("预支付交易会话标识生成失败。。。");
+			response.setResultCode(Constant.ERROR_CODE_9998);
+			response.setResultMessage(Constant.ERROR_MESSAGE.get(Constant.ERROR_CODE_9998));
+		}
+		
+		try{
+	    	model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+	        log.debug("WeChatPayController.createOrder.response=="+JsonUtils.getJSONString(response));
+	    } catch (Exception ex) {
+	        log.error("VersionController.getVersion", ex);
+	    }
+		return RET_JSP;
+	} 
+	
+	/**
+	 * 微信支付结果通知回调接口
+	 * @param request
+	 * @param response
+	 * @throws Exception
+	 */
+	  @RequestMapping(value={"/notifyURL"}, method={RequestMethod.GET, RequestMethod.POST})
+	  public void notifyURL(HttpServletRequest request, HttpServletResponse response) throws Exception{
+		  RequestHandler requestHandler = new RequestHandler(request, response);
+		  String partnerkey = CommonUtils.getPropertiesValue("config", "partnerkey");
+		  requestHandler.setPartnerkey(partnerkey);
+	    BufferedReader br = new BufferedReader(new InputStreamReader(request.getInputStream()));
+	    String line = null;
+	    StringBuilder sb = new StringBuilder();
+	    while ((line = br.readLine()) != null) {
+	      sb.append(line);
+	    }
+	    log.info("微信回调异步通知接口xml：》》》》》" + sb.toString());
+
+	    Map<String, String> map = GetWxOrderno.doXMLParse(sb.toString());
+	    String sign = map.get("sign");
+	    String return_code = map.get("return_code");
+	    String result_code = map.get("result_code");
+	    SortedMap<String, String> sortedMap = new TreeMap<String, String>(map);
+	    String signCreate = requestHandler.createSign(sortedMap);
+	    if (("SUCCESS").equals(return_code)&&("SUCCESS").equals(result_code)) {
+	    	if (sign.equals(signCreate)) {
+				String total_fee = map.get("total_fee");  //支付总金额
+				String order_no = map.get("out_trade_no");  //交易流水号
+				total_fee = BigDecimal.valueOf(Long.valueOf(total_fee)).divide(new BigDecimal(100)).toString();
+				float sourceF = Float.valueOf(total_fee);
+				DecimalFormat decimalFormat=new DecimalFormat("##0.00");//构造方法的字符格式这里如果小数不足2位,会以0补足.
+				total_fee=decimalFormat.format(sourceF);
+				//校验总金额是否相等
+	    		try {
+	    			BillStage billStage = billStageService.selTotalAllByOrderNo(order_no);
+	    			Float totalAll = billStage.getBaseAmount()+billStage.getChargeAmount();
+	    			if (billStage.getOverdueFine() != null && !"".equals(billStage.getOverdueFine())) {
+	    				totalAll = totalAll+billStage.getOverdueFine();
+	    			}
+	    			String tempTotalAll = CommonUtils.getToString(totalAll);
+	    			logInfoStart(tempTotalAll,billStage,total_fee);//打印检验金额日志（查出库里总金额多少，滞纳金是多少，传过来的金额是多少）
+	    			String billNo = billStage.getBillNo();
+	    			
+	    			//校验还款金额
+	    			if(total_fee.equals(tempTotalAll)){
+	    				updateStatus(billNo,total_fee,order_no,billStage);//提取公共部分
+	    				log.info("还款成功！");
+	    				String xmlString ="<xml>"+
+	    						"<return_code>SUCCESS</return_code>"+
+	    						"<return_msg>还款成功！</return_msg>"+
+	    						"</xml>";
+	    				requestHandler.sendToCFT(xmlString);
+	    			} else{
+	    				log.info("还款失败>>>>开始更新交易流水表状态："+order_no);//更新交易流水表状态
+	    				log.error("还款失败>>>>开始更新交易流水表状态："+order_no);//更新交易流水表状态
+	    				PayRecode payRecode = new PayRecode();
+	    				payRecode.setTradeNo(order_no);
+	    				payRecode.setPayState("A3");
+	    				payRecodeService.updatePayState(payRecode);
+	    				log.info("交易流水表状态已更改为A3:异步通知校验失败="+payRecode.getPayState());
+	    				log.error("交易流水表状态已更改为A3:异步通知校验失败="+payRecode.getPayState());
+	    				String xmlString ="<xml>"+
+	    						"<return_code>FAIL</return_code>"+
+	    						"<return_msg>参数格式校验错误</return_msg>"+
+	    						"</xml>";
+	    				requestHandler.sendToCFT(xmlString);
+	    				logInfoError(billNo,total_fee,tempTotalAll);//打印校验还款金额及签名信息info及error日志(金额或签名校验不正确时打印)
+	    			}
+	    		} catch (Exception e) {
+	    			e.printStackTrace();
+	    		}
+			}else {
+				String xmlString ="<xml>"+
+						"<return_code>FAIL</return_code>"+
+						"<return_msg>签名失败</return_msg>"+
+						"</xml>";
+				requestHandler.sendToCFT(xmlString);
+			}
+		}else {
+			String xmlString ="<xml>"+
+					"<return_code>FAIL</return_code>"+
+					"<return_msg>参数格式校验错误</return_msg>"+
+					"</xml>";
+			requestHandler.sendToCFT(xmlString);
+		}
+	  }
+	
+     
+   //更新支付状态等信息
+    public void updateStatus(String billNo, String total_fee, String order_no, BillStage billStage) throws Exception{
+    	log.info("-----------校验还款金额及签名信息成功---------");
+        //判断该笔订单是否在商户网站中已经做过处理（可参考“集成教程”中“3.4返回数据处理”）
+        //如果没有做过处理，根据订单号（out_trade_no）在商户网站的订单系统中查到该笔订单的详细，并执行商户的业务程序
+        //如果有做过处理，不执行商户的业务程序
+    	
+    	//查询是否有此账单
+        BillStage bill = new BillStage();
+        bill.setBillNo(billNo);
+        bill = billStageService.getBillByOrder(bill);
+        if (bill == null) {
+        	log.info("未找到该账单，请查看body值是否与账单_billNo对应？");
+        	throw new Exception();
+        }
+        Integer billId = bill.getId();
+        if(memcachedClient.add(""+billId, AppConstants.BILL_TIMEOUT_SECONDS,"")){
+            log.info("该账单状态没有修改，进行账单状态修改="+billId);
+            bill.setBillStatus(2);
+            bill.setRepayAmount(Float.valueOf(total_fee));
+            billStageService.updateBill(bill);//修改状态，设置还款额
+
+            BillStage optBill = billStageService.getBillById(bill);
+            OrderInfo orderInfo = new OrderInfo();
+            orderInfo.setId(optBill.getOrderId());
+            OrderInfo memberOrder =  orderService.getOrderInfoById(orderInfo);
+
+            MemberInfo memberInfo = new MemberInfo();
+            memberInfo.setSysUserid(memberOrder.getOwnerUserid());
+            memberInfo.setUseSum(optBill.getBaseAmount());
+            memberInfoService.updateUseScore(memberInfo);
+            
+            //更新交易流水表状态
+            log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>billStage="+billStage);
+            if(billStage!=null){
+                log.info("还款成功>>>>开始更新交易流水表状态："+order_no);
+                PayRecode payRecode = new PayRecode();
+                payRecode.setTradeNo(order_no);
+                payRecode.setPayState("A2");
+                payRecodeService.updatePayState(payRecode);
+                log.info("还款成功>>>>更新交易流水表状态结束："+payRecode.getPayState());
+            }
+            
+            wcfCallUtils.callSetBillStatus(billId, optBill.getBillNo(), 2, order_no, optBill.getBillStatus());//设置分期商城账单状态
+            
+            //判断账单是否全部还清，如果全部还清修改订单状态为已还清（开始）
+            int billFlag = billStageService.getBillFlagByOrderId(optBill.getOrderId());
+            
+            //如果为零证明全部还清了。可以修改订单状态
+            if (billFlag == 0) {
+            	log.info("账单以全部还清，修改订单状态。。。");
+            	Map<String, Integer> paramMap = new HashMap<String, Integer>();
+            	paramMap.put("orderId", optBill.getOrderId());//订单Id
+            	paramMap.put("orderStatus", 9);//订单状态
+            	orderService.updateOrderStatusByOrderId(paramMap);
+            	log.info("订单状态以改为已还清");
+            	wcfCallUtils.callSetOrderStatus(memberOrder.getId(), memberOrder.getOrderName(), memberOrder.getOrderStatus());//设置分期商城订单状态
+            }
+            //判断账单是否全部还清，如果全部还清修改订单状态为已还清（结束）
+        }else{
+            log.info("该账单状态已经被处理，不进行账单状态修改="+billId);
+        }
+    
+    }    
+     
+    /**
+     * 打印检验金额日志（查出库里总金额多少，滞纳金是多少，传过来的金额是多少）
+     * @author shenwu
+     * @param tempTotalAll billStage total_fee
+     */
+    public void logInfoStart(String tempTotalAll,BillStage billStage, String total_fee){
+    	log.info("totalAll：账单库里总金额为"+tempTotalAll);
+    	log.info("tempTotalAll:还款总金额为"+tempTotalAll+"overdueFine:滞纳金金额为"+billStage.getOverdueFine());
+    	log.info("total_fee：获取总金额为"+total_fee+">>>>>>>>"+"tempTotalAll:还款总金额为"+tempTotalAll);
+    }
+    
+    /**
+     * 打印校验还款金额及签名信息info及error日志(金额或签名校验不正确时打印)
+     * @author shenwu
+     * @param billNo total_fee _tempTotalAll verify_result
+     */
+    public void logInfoError(String billNo,String total_fee,String tempTotalAll){
+    	log.info("校验失败账单号为："+billNo);//打印info日志
+        log.info("总金额不相等-->>"+"total_fee：获取总金额为"+total_fee+"tempTotalAll：账单库里总金额为"+tempTotalAll);//更新交易流水表状态
+        
+    	log.error("校验失败账单号为："+billNo);//打印error日志
+        log.error("总金额不相等-->>"+"total_fee：获取总金额为"+total_fee+"tempTotalAll：账单库里总金额为"+tempTotalAll);//更新交易流水表状态
+    }
+        
+}

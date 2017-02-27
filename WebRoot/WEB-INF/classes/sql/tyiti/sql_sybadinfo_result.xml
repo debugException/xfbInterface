@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="t_sybadinfo_result">
+	<!--插入审黑名单-->
+	<insert id="insert_sysbadinfo" parameterClass="cn.tyiti.xfb.bojo.blacklist.SybadInfo">
+		INSERT INTO t_sybadinfo_result (id,name,userId,loginName,idcode , msgId ,mobile , bmatch , reason , reason_description ,create_date_type ,
+			 amount_type,over_due_type , legal_status ,querytime)
+		VALUES
+			(#id#,#name#,#userId#,#loginName#,#idcode#,#msgId#,#mobile#,#bmatch#,#reason#,#reason_description#,#create_date_type#,#amount_type#,#over_due_type#,#legal_status#,NOW())
+	</insert>
+</sqlMap>
+

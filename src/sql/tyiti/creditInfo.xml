@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="t_credit_creditInfo" >
+	
+	<!-- 保存查询信息 -->
+	<insert id="insert" parameterClass="cn.emagsoftware.xfb.pojo.CreditInfo">
+		INSERT INTO t_credit_info (
+						id,
+						userId,
+						userName,
+						cardNumber,
+						trxNo,
+						queryTime
+						)
+			VALUES
+				(
+					#id:INTEGER#,#userId:VARCHAR#,#userName:VARCHAR#,#cardNumber:VARCHAR#,#trxNo:VARCHAR#,now()
+				)	
+	</insert>
+	
+	<!-- 查询用户userId -->
+	<select id="getUserIdByTrxNo" parameterClass="java.lang.String" resultClass="java.lang.String">
+		SELECT
+			c.userId
+		FROM
+			t_credit_info c
+		WHERE
+			c.trxNo = #trxNo#
+	</select>
+	
+	<!-- 查询用户身份证号 -->
+	<select id="getCardNumberByTrxNo" parameterClass="java.lang.String" resultClass="java.lang.String">
+		SELECT
+			c.cardNumber
+		FROM
+			t_credit_info c
+		WHERE
+			c.trxNo = #trxNo#
+	</select>
+	
+	<!-- 保存查询结果集 -->
+	<insert id="addLoanInfo" parameterClass="cn.emagsoftware.xfb.pojo.LoanInfo">
+			INSERT INTO t_loan_info 
+				<dynamic prepend="(" >
+				  <isNotNull prepend="," property="userId" >
+			        userId
+			      </isNotNull>
+			      <isNotNull prepend="," property="borrowType" >
+			        borrowType
+			      </isNotNull>
+			      <isNotNull prepend="," property="borrowState" >
+			        borrowState
+			      </isNotNull>
+			      <isNotNull prepend="," property="borrowAmount" >
+			        borrowAmount
+			      </isNotNull>
+			      <isNotNull prepend="," property="contractDate" >
+			        contractDate
+			      </isNotNull>
+			      <isNotNull prepend="," property="loanPeriod" >
+			        loanPeriod
+			      </isNotNull>
+			      <isNotNull prepend="," property="repayState" >
+			        repayState
+			      </isNotNull>
+			      <isNotNull prepend="," property="arrearsAmount" >
+			        arrearsAmount
+			      </isNotNull>
+			      <isNotNull prepend="," property="companyCode" >
+			        companyCode
+			      </isNotNull>
+			      <isNotNull prepend="," property="trxNo" >
+			        trxNo
+			      </isNotNull>
+			      <isNotNull prepend="," property="cardNumber" >
+			        cardNumber
+			      </isNotNull>
+			      )
+			    </dynamic>
+			VALUES
+				<dynamic prepend="(" >
+				 <isNotNull prepend="," property="userId" >
+			        #userId:VARCHAR#
+			      </isNotNull>
+			      <isNotNull prepend="," property="borrowType" >
+			        #borrowType:SMALLINT#
+			      </isNotNull>
+			      <isNotNull prepend="," property="borrowState" >
+			        #borrowState:SMALLINT#
+			      </isNotNull>
+			      <isNotNull prepend="," property="borrowAmount" >
+			       	#borrowAmount:SMALLINT#
+			      </isNotNull>
+			      <isNotNull prepend="," property="contractDate" >
+			        #contractDate:DATE#
+			      </isNotNull>
+			      <isNotNull prepend="," property="loanPeriod" >
+			        #loanPeriod:SMALLINT#
+			      </isNotNull>
+			      <isNotNull prepend="," property="repayState" >
+			        #repayState:SMALLINT#
+			      </isNotNull>
+			      <isNotNull prepend="," property="arrearsAmount" >
+			        #arrearsAmount:BIGINT#
+			      </isNotNull>
+			      <isNotNull prepend="," property="companyCode" >
+			        #companyCode:VARCHAR#
+			      </isNotNull>
+			      <isNotNull prepend="," property="trxNo" >
+			        #trxNo:VARCHAR#
+			      </isNotNull>
+			      <isNotNull prepend="," property="cardNumber" >
+			        #cardNumber:VARCHAR#
+			      </isNotNull>
+
+			      )
+			    </dynamic>
+		</insert>
+		
+	<!-- 修改黑名单主表信息 -->
+	<update id="updateTrxNo" parameterClass="java.util.Map">
+		UPDATE t_blacklist_main
+		SET $modifyField$ = #creditCode#
+		where idcode = #cardNumber#
+	</update>
+<!-- 	
+	<update id="updateTrxNo" parameterClass="java.util.Map">
+		UPDATE t_blacklist_main
+		SET $modifyField$ = #creditCode#
+		where userId = #userId#
+	</update> 
+-->
+	
+	<!-- 查询本地信息返回给91平台 -->
+	<select id="queryLoanInfos" resultClass="cn.emagsoftware.xfb.pojo.CollectInfo" parameterClass="java.util.Map">
+		SELECT
+			s.real_name AS real_name,
+			m.card_number AS card_number,
+		  s.type AS type,
+		  s.`status` AS status,
+		  m.credit_sum AS credit_sum,
+		  s.verify_state AS verify_state,
+		  m.verify_state AS m_verify_state,
+		  j.verify_state AS j_verify_state,
+		  t.verify_state AS c_verify_state,
+		  d.verify_state AS s_verify_state,
+		  o.use_limit AS use_limit,
+		  o.create_time AS create_time,
+		  o.stage_plan AS stage_plan,
+		  o.order_status AS order_status,
+		  IF(b.bill_status = '3',b.overdue_day,"0") AS overdue_day,
+		  IF(b.bill_status = '3',b.overdue_fine+b.base_amount,"0") AS arrearsAmount
+		FROM
+			t_sys_user s
+		LEFT JOIN t_member_info m ON s.id = m.user_id
+		LEFT JOIN t_order_info o ON o.owner_userid = s.id
+		LEFT JOIN t_bill_stage b ON b.order_id = o.id
+		LEFT JOIN t_job_info j ON s.id = j.user_id
+		LEFT JOIN t_contact_info t ON s.id = t.user_id
+		LEFT JOIN t_student_info d ON s.id = d.user_id
+		WHERE m.card_number = #idCard# AND s.real_name = #realName#
+	</select>
+	
+</sqlMap>

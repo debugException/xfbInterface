@@ -1,0 +1,87 @@
+package cn.tyiti.xfb.service.impl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import cn.tyiti.xfb.bojo.ContactInfo;
+import cn.tyiti.xfb.bojo.ContactsInfo;
+import cn.tyiti.xfb.bojo.ImageInfo;
+import cn.tyiti.xfb.dao.ContactInfoDao;
+import cn.tyiti.xfb.service.ContactInfoService;
+
+@Service
+public class ContactInfoServiceImpl implements ContactInfoService{
+	@Autowired
+	private ContactInfoDao contactInfoDao;
+	
+	@Override
+	public void addContactInfo(List<ContactInfo> contactInfoList) throws Exception {
+		if(contactInfoList.size()>0){
+			//获取用户Id
+			Integer userId = contactInfoList.get(0).getUserId();
+			//联系人不做删除，获取数据时把状态为退回的数据过滤掉
+			//contactInfoDao.deleteContactInfo(userId);
+			//第一步，增加联系人信息。
+			//for (ContactInfo contactInfo : contactInfoList) {
+			//批量插入
+			contactInfoDao.addContactInfo(contactInfoList);
+			//}
+			//第二步，修改基本认证上两步及用户信息的审核状态
+			contactInfoDao.updateContactInfoTypeByUserId(userId);
+			//更新图片状态为审核中
+			ImageInfo imageInfo = new ImageInfo();
+			imageInfo.setUserId(userId);
+//			imageInfo.setType("A1");
+			imageInfo.setType("'A1','B1','C1','A3','B3','C3'");
+//			imageInfo.setlSize(3);
+			//更新图片状态为审核中 身份证、学生证的最新三张
+			contactInfoDao.updateImageVerifyState(imageInfo);
+//			imageInfo.setType("A3");
+//			imageInfo.setType("'A3','B3','C3'");
+			//更新图片状态为审核中 学生证最新三张
+//			contactInfoDao.updateImageVerifyState(imageInfo);
+		} else {
+			throw new Exception("获取联系人信息为空");
+		}
+	}
+
+	@Override
+	public void updateContactInfoById(List<ContactInfo> contactInfoList) throws Exception {
+		for (ContactInfo contactInfo : contactInfoList) {
+			//修改联系人信息
+			contactInfoDao.updateContactInfoById(contactInfo);
+		}
+		//修改用户信息的审核状态
+		int updateUserState = contactInfoDao.updateUserState(contactInfoList.get(0).getUserId());
+		System.out.println(updateUserState);
+	}
+
+	@Override
+	public List<ContactInfo> getContactInfoListByUserId(Integer userId) {
+		return contactInfoDao.getContactInfoListByUserId(userId);
+	}
+	
+	/**
+	 * 根据userId查询是否存在此数据
+	 */
+	@Override
+	public List<ContactsInfo> getContactsInfoByUserId(Integer userId) {
+		return contactInfoDao.getContactsInfoByUserId(userId);
+	}
+	
+	/**
+	 * 保存通讯录数据
+	 */
+	@Override
+	public void saveContactsInfoList(List<ContactsInfo> contactsInfoList) throws Exception {
+		if(contactsInfoList.size()>0){
+			//批量保存通讯录数据
+			contactInfoDao.saveContactsInfoList(contactsInfoList);
+		} else {
+			throw new Exception("获取通讯录信息为空");
+		}
+	}
+	
+}	

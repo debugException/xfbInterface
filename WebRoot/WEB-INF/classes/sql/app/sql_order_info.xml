@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="t_order_info">
+  <resultMap id="BaseResultMap" class="cn.emagsoftware.xfb.pojo.OrderInfo" >
+    <result column="id" property="id" jdbcType="INTEGER" />
+    <result column="order_name" property="orderName" jdbcType="VARCHAR" />
+    <result column="product_name" property="productName" jdbcType="VARCHAR" />
+    <result column="product_price" property="productPrice" jdbcType="REAL" />
+    <result column="shop_name" property="shopName" jdbcType="VARCHAR" />
+    <result column="use_limit" property="useLimit" jdbcType="REAL" />
+    <result column="order_status" property="orderStatus" jdbcType="INTEGER" />
+    <result column="create_userid" property="createUserid" jdbcType="INTEGER" />
+      <result column="owner_userid" property="ownerUserid" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_userid" property="updateUserid" jdbcType="INTEGER" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="description" property="description" jdbcType="VARCHAR" />
+    <result column="stage_plan" property="stagePlan" jdbcType="INTEGER" />
+    <result column="all_stage_amout" property="allStageAmount" jdbcType="REAL" />
+    <result column="delete_flag" property="deleteFlag" jdbcType="INTEGER" />
+    <result column="verify_state" property="verifyState" jdbcType="INTEGER" />
+   </resultMap>
+
+    <sql id="Base_Column_List">
+    id, order_name, product_name, product_price, shop_name, use_limit, order_status,verify_state,
+    create_userid, create_time, update_userid,owner_userid, update_time, description,stage_plan,all_stage_amout,delete_flag
+  </sql>
+
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterClass="cn.emagsoftware.xfb.pojo.OrderInfo" >
+        select
+        <include refid="t_order_info.Base_Column_List"/>
+        from t_order_info
+        where id = #id:INTEGER#
+    </select>
+    
+    <!-- 查询需要确认订单的数量 -->
+  <select id="selectByUserIdCount" resultClass="java.lang.Integer" parameterClass="java.lang.Integer" >
+	SELECT count(1) from t_order_info where owner_userid = #userId:INTEGER# and order_status in (1,10,11) and delete_flag != 1
+    </select>
+    
+    <delete id="deleteByPrimaryKey" parameterClass="cn.emagsoftware.xfb.pojo.OrderInfo">
+    delete from t_order_info
+    where id = #id:INTEGER#
+  </delete>
+  
+    <insert id="insert" parameterClass="cn.emagsoftware.xfb.pojo.OrderInfo">
+    insert into t_order_info ( order_name, product_name, product_price,
+      shop_name, use_limit, order_status, create_userid, 
+      create_time, update_userid, owner_userid, update_time, description
+      )
+    values ( #orderName:VARCHAR#, #productName:VARCHAR#, #productPrice:REAL#,
+      #shopName:VARCHAR#, #useLimit:REAL#, #orderStatus:INTEGER#, #createUserid:INTEGER#, 
+      #createTime:TIMESTAMP#, #updateUserid:INTEGER#,  #ownerUserid:INTEGER#,#updateTime:TIMESTAMP#, #description:VARCHAR#
+      )
+  </insert>
+    <insert id="insertSelective" parameterClass="cn.emagsoftware.xfb.pojo.OrderInfo">
+        insert into t_order_info
+        <dynamic prepend="(">
+            <isNotNull prepend="," property="id">
+                id
+            </isNotNull>
+            <isNotNull prepend="," property="orderName">
+                order_name
+            </isNotNull>
+            <isNotNull prepend="," property="productName">
+                product_name
+            </isNotNull>
+            <isNotNull prepend="," property="productPrice">
+                product_price
+            </isNotNull>
+            <isNotNull prepend="," property="shopName">
+                shop_name
+            </isNotNull>
+            <isNotNull prepend="," property="useLimit">
+                use_limit
+            </isNotNull>
+            <isNotNull prepend="," property="orderStatus">
+                order_status
+            </isNotNull>
+            <isNotNull prepend="," property="createUserid">
+                create_userid
+            </isNotNull>
+            <isNotNull prepend="," property="createTime">
+                create_time
+            </isNotNull>
+            <isNotNull prepend="," property="updateUserid">
+                update_userid
+      </isNotNull>
+      <isNotNull prepend="," property="ownerUserid" >
+        owner_userid
+            </isNotNull>
+            <isNotNull prepend="," property="updateTime">
+                update_time
+            </isNotNull>
+            <isNotNull prepend="," property="description">
+                description
+            </isNotNull>
+            )
+        </dynamic>
+        values
+        <dynamic prepend="(">
+            <isNotNull prepend="," property="id">
+                #id:INTEGER#
+            </isNotNull>
+            <isNotNull prepend="," property="orderName">
+                #orderName:VARCHAR#
+            </isNotNull>
+            <isNotNull prepend="," property="productName">
+                #productName:VARCHAR#
+            </isNotNull>
+            <isNotNull prepend="," property="productPrice">
+                #productPrice:REAL#
+            </isNotNull>
+            <isNotNull prepend="," property="shopName">
+                #shopName:VARCHAR#
+            </isNotNull>
+            <isNotNull prepend="," property="useLimit">
+                #useLimit:REAL#
+            </isNotNull>
+            <isNotNull prepend="," property="orderStatus">
+                #orderStatus:INTEGER#
+            </isNotNull>
+            <isNotNull prepend="," property="createUserid">
+                #createUserid:INTEGER#
+            </isNotNull>
+            <isNotNull prepend="," property="createTime">
+                #createTime:TIMESTAMP#
+            </isNotNull>
+            <isNotNull prepend="," property="updateUserid">
+                #updateUserid:INTEGER#
+            </isNotNull>
+      <isNotNull prepend="," property="ownerUserid" >
+        #ownerUserid:INTEGER#
+      </isNotNull>
+            <isNotNull prepend="," property="updateTime">
+                #updateTime:TIMESTAMP#
+            </isNotNull>
+            <isNotNull prepend="," property="description">
+                #description:VARCHAR#
+            </isNotNull>
+            )
+        </dynamic>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterClass="cn.emagsoftware.xfb.pojo.OrderInfo">
+        update t_order_info
+        <dynamic prepend="set">
+            <isNotNull prepend="," property="orderName">
+                order_name = #orderName:VARCHAR#
+            </isNotNull>
+            <isNotNull prepend="," property="productName">
+                product_name = #productName:VARCHAR#
+            </isNotNull>
+            <isNotNull prepend="," property="productPrice">
+                product_price = #productPrice:REAL#
+            </isNotNull>
+            <isNotNull prepend="," property="shopName">
+                shop_name = #shopName:VARCHAR#
+            </isNotNull>
+            <isNotNull prepend="," property="useLimit">
+                use_limit = #useLimit:REAL#
+            </isNotNull>
+            <isNotNull prepend="," property="orderStatus">
+                order_status = #orderStatus:INTEGER#
+            </isNotNull>
+            <isNotNull prepend="," property="createUserid">
+                create_userid = #createUserid:INTEGER#
+            </isNotNull>
+            <isNotNull prepend="," property="createTime">
+                create_time = #createTime:TIMESTAMP#
+            </isNotNull>
+            <isNotNull prepend="," property="updateUserid">
+                update_userid = #updateUserid:INTEGER#
+            </isNotNull>
+      <isNotNull prepend="," property="ownerUserid" >
+        #ownerUserid:INTEGER#
+      </isNotNull>
+            <isNotNull prepend="," property="updateTime">
+                update_time = #updateTime:TIMESTAMP#
+            </isNotNull>
+            <isNotNull prepend="," property="description">
+                description = #description:VARCHAR#
+            </isNotNull>
+        </dynamic>
+        where id = #id:INTEGER#
+    </update>
+    <update id="updateByPrimaryKey" parameterClass="cn.emagsoftware.xfb.pojo.OrderInfo">
+    update t_order_info
+    set order_name = #orderName:VARCHAR#,
+      product_name = #productName:VARCHAR#,
+      product_price = #productPrice:REAL#,
+      shop_name = #shopName:VARCHAR#,
+      use_limit = #useLimit:REAL#,
+      order_status = #orderStatus:INTEGER#,
+      create_userid = #createUserid:INTEGER#,
+      create_time = #createTime:TIMESTAMP#,
+      update_userid = #updateUserid:INTEGER#,
+      update_time = #updateTime:TIMESTAMP#,
+      description = #description:VARCHAR#
+    where id = #id:INTEGER#
+  </update>
+    <resultMap class="cn.emagsoftware.xfb.pojo.OrderInfo" id="BaseResultMap">
+        <result column="id" jdbcType="INTEGER" property="id"/>
+        <result column="order_name" jdbcType="VARCHAR" property="orderName"/>
+        <result column="product_name" jdbcType="VARCHAR" property="productName"/>
+        <result column="product_price" jdbcType="REAL" property="productPrice"/>
+        <result column="shop_name" jdbcType="VARCHAR" property="shopName"/>
+        <result column="use_limit" jdbcType="REAL" property="useLimit"/>
+        <result column="order_status" jdbcType="INTEGER" property="orderStatus"/>
+        <result column="create_userid" jdbcType="INTEGER" property="createUserid"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_userid" jdbcType="INTEGER" property="updateUserid"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="description" jdbcType="VARCHAR" property="description"/>
+    </resultMap>
+
+ <select id="getOrderByUserID" resultClass="cn.emagsoftware.xfb.pojo.OrderInfo"
+            parameterClass="java.util.Map">
+        select
+         id, order_name orderName, product_name productName, product_price productPrice, shop_name shopName, use_limit useLimit, order_status orderStatus,
+        create_userid createUserid, create_time createTime,owner_userid ownerUserid, stage_plan stagePlan, deal_time dealTime
+         from t_order_info where owner_userid=#ownerUserid:INTEGER# and delete_flag = 0 and order_status != 0
+        order by order_status = 1 desc, order_status = 10 desc, order_status = 11 desc, create_time desc
+        limit #pageStart#, #pageSize#
+
+</select>
+
+<!-- 我的订单页待确认订单 -->
+ <select id="getOrderNoConfirmByUserID" resultClass="cn.emagsoftware.xfb.pojo.OrderInfo"
+            parameterClass="java.util.Map">  
+        select
+         id, order_name orderName, product_name productName, product_price productPrice, shop_name shopName, use_limit useLimit, order_status orderStatus,
+        create_userid createUserid, create_time createTime,owner_userid ownerUserid, stage_plan stagePlan, deal_time dealTime
+         from t_order_info where owner_userid=#ownerUserid:INTEGER# and delete_flag = 0 and order_status in (1,10,11)
+        order by order_status = 1 desc, order_status = 10 desc, order_status = 11 desc, create_time desc
+        limit #pageStart#, #pageSize#
+
+</select>
+
+<select id="getOrderByUserID_count" resultClass="java.lang.Integer"  parameterClass="java.util.Map" >
+        select count(*) from t_order_info  where owner_userid=#ownerUserid:INTEGER# and delete_flag = 0 and order_status != 0
+</select>
+
+
+
+  <update id="orderCancellation" parameterClass="cn.emagsoftware.xfb.pojo.OrderInfo">
+    update t_order_info
+	    <dynamic prepend="set">
+		    update_time = now(),
+	      <isEqual prepend="," property="orderStatus" compareValue="3">
+			return_state=order_status
+		  </isEqual>
+	      <isNotNull prepend="," property="orderStatus" >
+	        order_status = #orderStatus:INTEGER#
+	      </isNotNull>
+	      <isNotNull prepend="," property="deleteFlag" >
+	        delete_flag = #deleteFlag:INTEGER#
+	      </isNotNull>
+	      <isNotNull prepend="," property="returnCause" >
+	        return_cause = #returnCause:VARCHAR#
+	      </isNotNull>
+	    </dynamic>
+     where id = #id:INTEGER#
+  </update>
+	
+  <update id="orderStage" parameterClass="cn.emagsoftware.xfb.pojo.OrderInfo">
+    update t_order_info
+    set order_status = #orderStatus:INTEGER#,
+      all_stage_amout = #allStageAmount:REAL#,
+      deal_time = now(),
+      isPay=3,
+      update_time = now()
+     where id = #id:INTEGER#
+  </update>
+  
+   <select id="findOrderInfoByOwnerUserid" resultClass="cn.emagsoftware.xfb.pojo.OrderInfo"
+            parameterClass="java.util.Map">
+        select
+        id, order_name orderName, product_name productName, product_price productPrice, shop_name shopName, use_limit useLimit, order_status orderStatus,
+        create_userid createUserid, create_time createTime,owner_userid ownerUserid, stage_plan stagePlan
+        from t_order_info  
+        where owner_userid=#ownerUserid:INTEGER# and delete_flag = 0 and order_status in (2,3,12,13,14)
+        order by deal_time desc
+        limit #pageStart:INTEGER#, #pageSize:INTEGER#
+
+</select>
+<select id="findOrderInfoByOwnerUserid_count" resultClass="java.lang.Integer"  parameterClass="java.util.Map" >
+        select count(id) from t_order_info  where owner_userid=#ownerUserid:INTEGER# and delete_flag = 0 and order_status in (2,3,12,13,14)
+</select>
+<update id="updateOrderStatus" parameterClass="java.util.Map">
+		update t_order_info set order_status = #orderStatus:INTEGER#,update_time = now() where id = #orderId:INTEGER#
+</update>	
+</sqlMap>

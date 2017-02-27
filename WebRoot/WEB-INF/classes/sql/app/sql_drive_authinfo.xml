@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="t_drive_authinfo" >
+  <resultMap id="BaseResultMap" class="cn.emagsoftware.xfb.pojo.DriveAuthinfo" >
+    <result column="id" property="id" jdbcType="INTEGER" />
+    <result column="sys_userid" property="sysUserid" jdbcType="INTEGER" />
+    <result column="credit_id" property="creditId" jdbcType="INTEGER" />
+    <result column="credit_score" property="creditScore" jdbcType="REAL" />
+    <result column="user_name" property="userName" jdbcType="VARCHAR" />
+    <result column="user_age" property="userAge" jdbcType="VARCHAR" />
+    <result column="drive_status" property="driveStatus" jdbcType="INTEGER" />
+    <result column="submit_time" property="submitTime" jdbcType="TIMESTAMP" />
+    <result column="image_path1" property="imagePath1" jdbcType="VARCHAR" />
+    <result column="image_path2" property="imagePath2" jdbcType="VARCHAR" />
+    <result column="image_path3" property="imagePath3" jdbcType="VARCHAR" />
+    <result column="video_title" property="videoTitle" jdbcType="VARCHAR" />
+    <result column="is_verify" property="isVerify" jdbcType="INTEGER" />
+    <result column="operator" property="operator" jdbcType="INTEGER" />
+    <result column="operate_time" property="operateTime" jdbcType="TIMESTAMP" />
+    <result column="description" property="description" jdbcType="VARCHAR" />
+    <result column="verify_status" property="verifyStatus" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, sys_userid, credit_id, credit_score, user_name, user_age, drive_status, submit_time,
+    image_path1, image_path2, image_path3, video_title, is_verify, operator, operate_time,
+    description, verify_status
+</sql>
+
+    <sql id="Bean_Column_List" >
+        id,
+        sys_userid sysUserid,
+        credit_id creditId,
+        credit_score creditScore,
+        user_name userName,
+        user_age userAge,
+        drive_status driveStatus,
+        submit_time submitTime,
+        image_path1 imagePath1,
+        image_path2 imagePath2,
+        image_path3 imagePath3,
+        video_title videotitle,
+        is_verify isVerify,
+        operator,
+        operate_time operateTime,
+        description,
+        verify_status verifyStatus
+    </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterClass="cn.emagsoftware.xfb.pojo.DriveAuthinfo" >
+    select 
+    <include refid="t_drive_authinfo.Base_Column_List" />
+    from t_drive_authinfo
+    where id = #id:INTEGER#
+  </select>
+  <delete id="deleteByPrimaryKey" parameterClass="cn.emagsoftware.xfb.pojo.DriveAuthinfo" >
+    delete from t_drive_authinfo
+    where id = #id:INTEGER#
+  </delete>
+  <insert id="insert" parameterClass="cn.emagsoftware.xfb.pojo.DriveAuthinfo" >
+    insert into t_drive_authinfo (id, sys_userid, credit_id, credit_score, 
+      user_name, user_age, drive_status, submit_time, 
+      image_path1, image_path2, image_path3, video_title, 
+      is_verify, operator, operate_time, description, 
+      verify_status)
+    values (#id:INTEGER#, #sysUserid:INTEGER#, #creditId:INTEGER#, 0,
+      #userName:VARCHAR#, #userAge:VARCHAR#, 1,now(),
+      #imagePath1:VARCHAR#, #imagePath2:VARCHAR#, #imagePath3:VARCHAR#, #videoTitle:VARCHAR#, 
+      1, #operator:INTEGER#, #operateTime:TIMESTAMP#, #description:VARCHAR#,
+      0)
+  </insert>
+  <insert id="insertSelective" parameterClass="cn.emagsoftware.xfb.pojo.DriveAuthinfo" >
+    insert into t_drive_authinfo
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        id
+      </isNotNull>
+      <isNotNull prepend="," property="sysUserid" >
+        sys_userid
+      </isNotNull>
+      <isNotNull prepend="," property="creditId" >
+        credit_id
+      </isNotNull>
+      <isNotNull prepend="," property="creditScore" >
+        credit_score
+      </isNotNull>
+      <isNotNull prepend="," property="userName" >
+        user_name
+      </isNotNull>
+      <isNotNull prepend="," property="userAge" >
+        user_age
+      </isNotNull>
+      <isNotNull prepend="," property="driveStatus" >
+        drive_status
+      </isNotNull>
+      <isNotNull prepend="," property="submitTime" >
+        submit_time
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath1" >
+        image_path1
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath2" >
+        image_path2
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath3" >
+        image_path3
+      </isNotNull>
+      <isNotNull prepend="," property="videoTitle" >
+        video_title
+      </isNotNull>
+      <isNotNull prepend="," property="isVerify" >
+        is_verify
+      </isNotNull>
+      <isNotNull prepend="," property="operator" >
+        operator
+      </isNotNull>
+      <isNotNull prepend="," property="operateTime" >
+        operate_time
+      </isNotNull>
+      <isNotNull prepend="," property="description" >
+        description
+      </isNotNull>
+      <isNotNull prepend="," property="verifyStatus" >
+        verify_status
+      </isNotNull>
+      )
+    </dynamic>
+    values
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        #id:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="sysUserid" >
+        #sysUserid:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="creditId" >
+        #creditId:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="creditScore" >
+        #creditScore:REAL#
+      </isNotNull>
+      <isNotNull prepend="," property="userName" >
+        #userName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="userAge" >
+        #userAge:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="driveStatus" >
+        #driveStatus:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="submitTime" >
+        #submitTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath1" >
+        #imagePath1:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath2" >
+        #imagePath2:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath3" >
+        #imagePath3:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="videoTitle" >
+        #videoTitle:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="isVerify" >
+        #isVerify:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="operator" >
+        #operator:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="operateTime" >
+        #operateTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="description" >
+        #description:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="verifyStatus" >
+        #verifyStatus:INTEGER#
+      </isNotNull>
+      )
+    </dynamic>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterClass="cn.emagsoftware.xfb.pojo.DriveAuthinfo" >
+    update t_drive_authinfo
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="sysUserid" >
+        sys_userid = #sysUserid:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="creditId" >
+        credit_id = #creditId:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="creditScore" >
+        credit_score = #creditScore:REAL#
+      </isNotNull>
+      <isNotNull prepend="," property="userName" >
+        user_name = #userName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="userAge" >
+        user_age = #userAge:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="driveStatus" >
+        drive_status = #driveStatus:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="submitTime" >
+        submit_time = #submitTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath1" >
+        image_path1 = #imagePath1:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath2" >
+        image_path2 = #imagePath2:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="imagePath3" >
+        image_path3 = #imagePath3:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="videoTitle" >
+        video_title = #videoTitle:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="isVerify" >
+        is_verify = #isVerify:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="operator" >
+        operator = #operator:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="operateTime" >
+        operate_time = #operateTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="description" >
+        description = #description:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="verifyStatus" >
+        verify_status = #verifyStatus:INTEGER#
+      </isNotNull>
+    </dynamic>
+    where id = #id:INTEGER#
+  </update>
+  <update id="updateByPrimaryKey" parameterClass="cn.emagsoftware.xfb.pojo.DriveAuthinfo" >
+    update t_drive_authinfo
+    set sys_userid = #sysUserid:INTEGER#,
+      credit_id = #creditId:INTEGER#,
+      credit_score = #creditScore:REAL#,
+      user_name = #userName:VARCHAR#,
+      user_age = #userAge:VARCHAR#,
+      drive_status = #driveStatus:INTEGER#,
+      submit_time = #submitTime:TIMESTAMP#,
+      image_path1 = #imagePath1:VARCHAR#,
+      image_path2 = #imagePath2:VARCHAR#,
+      image_path3 = #imagePath3:VARCHAR#,
+      video_title = #videoTitle:VARCHAR#,
+      is_verify = #isVerify:INTEGER#,
+      operator = #operator:INTEGER#,
+      operate_time = #operateTime:TIMESTAMP#,
+      description = #description:VARCHAR#,
+      verify_status = #verifyStatus:INTEGER#
+    where id = #id:INTEGER#
+  </update>
+
+
+    <select id="getDriveAuthinfoByUserid" resultClass="cn.emagsoftware.xfb.pojo.DriveAuthinfo" parameterClass="cn.emagsoftware.xfb.pojo.DriveAuthinfo" >
+        select
+        <include refid="t_drive_authinfo.Bean_Column_List" />
+        from t_drive_authinfo
+        where sys_userid = #sysUserid:INTEGER#
+    </select>
+
+
+    <update id="updateImagePathByUserId" parameterClass="cn.emagsoftware.xfb.pojo.DriveAuthinfo" >
+        update t_drive_authinfo
+        <dynamic prepend="set" >
+            <isNotNull prepend="," property="imagePath1" >
+                image_path1 = #imagePath1:VARCHAR#
+            </isNotNull>
+            <isNotNull prepend="," property="imagePath2" >
+                image_path2 = #imagePath2:VARCHAR#
+            </isNotNull>
+            <isNotNull prepend="," property="imagePath3" >
+                image_path3 = #imagePath3:VARCHAR#
+            </isNotNull>
+        </dynamic>
+        where sys_userid =  #sysUserid:INTEGER#
+    </update>
+    <update id="driveAuthinfo" parameterClass="cn.emagsoftware.xfb.pojo.DriveAuthinfo" >
+        update t_drive_authinfo
+        set
+        credit_id = #creditId:INTEGER#,
+        credit_score = #creditScore:REAL#,
+        user_name = #userName:VARCHAR#,
+        user_age = #userAge:VARCHAR#,
+        submit_time = now(),
+        video_title = #videoTitle:VARCHAR#,
+        is_verify = 1,
+        description = #description:VARCHAR#,
+        verify_status =0
+        where sys_userid =  #sysUserid:INTEGER#
+    </update>
+
+</sqlMap>

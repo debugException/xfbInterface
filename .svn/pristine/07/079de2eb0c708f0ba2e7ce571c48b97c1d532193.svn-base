@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="t_multi_sqlserver" >
+    
+    <!-- sqlserver2014 数据源 操作 开始 -->
+    <parameterMap  id="callsMap" class="java.util.HashMap">    
+        <parameter property="name" jdbcType="varchar" javaType="java.lang.String" mode="IN" />    
+        <parameter property="alias" jdbcType="varchar" javaType="java.lang.String" mode="IN"/>
+        <parameter property="password" jdbcType="varchar" javaType="java.lang.String" mode="IN" />    
+        <parameter property="type" jdbcType="varchar" javaType="java.lang.String" mode="IN"/>
+        <parameter property="idcardno" jdbcType="varchar" javaType="java.lang.String" mode="IN" />    
+        <parameter property="creatoruserid" jdbcType="varchar" javaType="java.lang.String" mode="IN"/>
+    </parameterMap> 
+    
+    <!-- 执行市场版注册时存储过程 -->
+    <procedure id="callsBazaarRegister" parameterMap="callsMap">  
+        {call usp_bazaar_register(?,?,?,?,?,?)}  
+    </procedure>
+    
+    <!-- 修改密码 -->
+    <update id="updatePWByLoginName" parameterClass="cn.emagsoftware.xfb.pojo.SysUser" >
+	    update t_sys_user
+	    set Password = #newPassWord:VARCHAR#
+	    where login_name = #loginName:VARCHAR#
+    </update>
+    <!-- sqlserver2014 数据源 操作 开始 -->
+</sqlMap>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="payRecode" >
+	<resultMap id="BaseResultMap" class="cn.tyiti.xfb.bojo.PayRecode" >
+		<result column="id" property="id" jdbcType="INTEGER" />
+		<result column="bill_id" property="billId" jdbcType="INTEGER" />
+		<result column="trade_no" property="tradeNo" jdbcType="VARCHAR" />
+		<result column="pay_amount" property="payAmount" jdbcType="REAL" />
+		<result column="pay_type" property="payType" jdbcType="CHAR" />
+		<result column="pay_state" property="payState" jdbcType="CHAR" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	
+	<resultMap id="BaseResultMap_stage" class="cn.emagsoftware.xfb.pojo.BillStage" >
+		<result column="id" property="id" jdbcType="INTEGER" />
+		<result column="bill_no" property="billNo" jdbcType="VARCHAR" />
+    </resultMap>
+	
+	<!-- 根据账单ID校验账单是否存在 -->
+	<select id="CheckIsBillId" resultMap="BaseResultMap_stage" parameterClass="cn.emagsoftware.xfb.pojo.BillStage" >
+		SELECT id, bill_no 
+		FROM t_bill_stage
+		WHERE id = #id:INTEGER#
+	</select>
+	
+	<!-- 保存操作流水记录 -->
+	<insert id="savePayRecode" parameterClass="cn.tyiti.xfb.bojo.PayRecode" >
+		INSERT INTO t_pay_recode
+			<dynamic prepend="(" >
+				<isNotNull prepend="," property="billId" >
+					bill_id
+				</isNotNull>
+				<isNotNull prepend="," property="payAmount" >
+					pay_amount
+				</isNotNull>
+				<isNotNull prepend="," property="payType" >
+					pay_type
+				</isNotNull>
+				<isNotNull prepend="," property="payState" >
+					pay_state
+				</isNotNull>
+				<isNotNull prepend="," property="tradeNo" >
+					trade_no
+				</isNotNull>
+				,create_time)
+			</dynamic>
+		VALUES
+			<dynamic prepend="(" >
+				<isNotNull prepend="," property="billId" >
+					#billId:INTEGER#
+				</isNotNull>
+				<isNotNull prepend="," property="payAmount" >
+					#payAmount:REAL#
+				</isNotNull>
+				<isNotNull prepend="," property="payType" >
+					#payType:CHAR#
+				</isNotNull>
+				<isNotNull prepend="," property="payState" >
+					#payState:CHAR#
+				</isNotNull>
+				<isNotNull prepend="," property="tradeNo" >
+					#tradeNo:VARCHAR#
+				</isNotNull>
+				,NOW())
+			</dynamic>
+		<selectKey resultClass="java.lang.Integer" keyProperty="id">
+			SELECT LAST_INSERT_ID() AS id
+		</selectKey>
+	</insert>
+	
+	<!-- 更新交易流水表状态 -->
+	<update id="updatePayState" parameterClass="cn.tyiti.xfb.bojo.PayRecode" >
+		UPDATE 
+			t_pay_recode
+        SET
+        	pay_state = #payState:CHAR#
+        WHERE trade_no =  #tradeNo:VARCHAR#
+    </update>
+</sqlMap>

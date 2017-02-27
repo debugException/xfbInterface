@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="creditmodel" >
+	<!-- 根据用户ID获取用户的总得分 -->
+	<select id="getScoreByCode" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+	 	SELECT
+			m.score 
+		FROM
+			t_model_info m
+		WHERE
+			m.code = #code#
+	</select>
+</sqlMap>

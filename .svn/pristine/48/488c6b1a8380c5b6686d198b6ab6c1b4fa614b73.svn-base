@@ -1,0 +1,57 @@
+package cn.emagsoftware.xfb.service;
+
+import java.util.Map;
+
+import cn.emagsoftware.xfb.pojo.*;
+
+/**
+ * Created with IntelliJ IDEA.
+ * User: yindongyong
+ * Date: 15-4-3
+ * Time: 下午4:36
+ * To change this template use File | Settings | File Templates.
+ */
+public interface SysUserService {
+    SysUser userLogin(SysUser user)throws Exception;
+
+    boolean checkLoginName(SysUser user)throws Exception;
+
+    void addUser(SysUser user)throws Exception;
+    
+    void addUser(SysUser user, MemberInfo memberInfo) throws Exception;
+    
+    /**
+     * 用户注册成功后更新推荐人
+     * */
+    void updateRecomUser(SysUser recomUser) throws Exception;
+
+    boolean checkRecomCode(SysUser user)throws Exception;
+
+    SysUser getUserById(SysUser user)throws Exception;
+
+    void updatePassWord(SysUser resultUser)throws Exception;
+    public  SysUser getUserByRecomCode(String recomCode)throws Exception;
+
+    SysUser getUserByLoinName(String loginName)throws Exception;
+
+    void updateRealNameByUsrId(SysUser sysUser)throws Exception;
+
+
+    boolean checkRuralBrokerByUserId(SysUser recomUser)throws Exception;
+
+    void addSysLog(SysLog sysLog)throws Exception;
+
+    Integer getCountByRecomCode(String myCode);
+
+    void updateRecomNum(SysUser recomUser);
+
+    Integer getUserByLNCN(SysUser user);
+    
+    void insertBazaarRegister(Map paramMap);
+    
+    //  根据登录名修改用户状态
+    void updateStatusByLoginName(SysUser sysUser) throws Exception;
+    
+    Integer getCountByLoginCard(SysUser user) throws Exception;
+}
+

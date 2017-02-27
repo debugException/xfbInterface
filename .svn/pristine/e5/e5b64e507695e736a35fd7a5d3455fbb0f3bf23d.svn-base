@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="contactinfo" >
+  <resultMap id="BaseResultMap" class="cn.tyiti.xfb.bojo.ContactInfo" >
+    <result column="id" property="id" jdbcType="INTEGER" />
+    <result column="user_id" property="userId" jdbcType="INTEGER" />
+    <result column="contact_name" property="contactName" jdbcType="VARCHAR" />
+    <result column="contact_phone" property="contactPhone" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="VARCHAR" />
+    <result column="relationship" property="relationship" jdbcType="VARCHAR" />
+    <!-- <result column="verify_state" property="verifyState" jdbcType="VARCHAR" />
+    <result column="verify_userid" property="verifyUserid" jdbcType="INTEGER" />
+    <result column="verify_time" property="verifyTime" jdbcType="TIMESTAMP" />
+    <result column="submit_time" property="submitTime" jdbcType="TIMESTAMP" />
+    <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
+    <result column="remarks" property="remarks" jdbcType="VARCHAR" />
+    <result column="is_toPoints" property="isToPoints" jdbcType="VARCHAR" /> -->
+  </resultMap>
+	
+	<insert id="insertContactinfo" parameterClass="java.util.List">
+		<![CDATA[
+          INSERT INTO t_contact_info(user_id, contact_name, contact_phone, type, relationship, verify_state, verify_time) values
+        ]]>
+       <iterate conjunction=",">
+            <![CDATA[(
+                  #contactInfoList[].userId:INTEGER#,
+                  #contactInfoList[].contactName:VARCHAR#,
+                  #contactInfoList[].contactPhone:VARCHAR#,
+                  #contactInfoList[].type:VARCHAR#,
+                  #contactInfoList[].relationship:VARCHAR#,
+                  'A3',
+                  NOW()
+                  )]]>
+        </iterate>
+	</insert>
+	<update id="updateContactInfo" parameterClass="cn.tyiti.xfb.bojo.ContactInfo">
+		update t_contact_info
+		<dynamic prepend="set" >
+			verify_state = 'A3',
+			modify_time = NOW(),
+	      <isNotNull prepend="," property="contactName" >
+	        contact_name = #contactName:VARCHAR#
+	      </isNotNull>
+	      <isNotNull prepend="," property="contactPhone" >
+	      	contact_phone = #contactPhone:VARCHAR#
+	      </isNotNull>
+	      <isNotNull prepend="," property="relationship" >
+	      	relationship = #relationship:VARCHAR#
+	      </isNotNull>
+	      <isNotNull prepend="," property="type" >
+	      	type = #type:VARCHAR#
+	      </isNotNull>
+   		</dynamic>
+   		where id = #id:INTEGER#
+	</update>
+	<update id="updateContactinfoType" parameterClass="java.lang.Integer">
+		update t_member_info mi
+		join t_sys_user su on mi.user_id = su.id
+		left join t_job_info ji on su.id = ji.user_id and su.type='A1'
+		left join t_student_info si on su.id = si.user_id and su.type='A2'
+		<!-- left join t_image_info ii on su.id = ii.user_id -->
+		set  mi.verify_state = 'A3',
+			 mi.submit_time = NOW(),
+			 <!-- 记录首次提交时间 black 2015-11-13 -->
+			 mi.first_verify_time = (case when mi.first_verify_time is null then now() else mi.first_verify_time end),
+			 ji.verify_state = 'A3',
+			 ji.submit_time = NOW(),
+			 si.verify_state = 'A3',
+			 ji.submit_time = NOW(),
+			 <!-- ii.verify_state = 'A3',
+			 ii.submit_time = NOW(), -->
+			 su.has_verify = 'A1',
+			 su.verify_state = 'A1'
+		where
+			 su.id = #userId:INTEGER#
+	</update>
+	
+	<delete id="deleteContactinfo" parameterClass="java.lang.Integer">
+		delete from t_contact_info 
+		where
+			 user_id = #userId:INTEGER# and verify_state = 'A1'
+	</delete>
+	
+	<select id="getContactInfoList" parameterClass="java.lang.Integer" resultClass="cn.tyiti.xfb.bojo.ContactInfo">
+			SELECT
+			t.id,
+			t.user_id userId,
+			t.contact_name contactName,
+			t.contact_phone contactPhone,
+			t.type,
+			t.relationship,
+			t.verify_state verifyState
+		FROM
+			t_contact_info t
+		WHERE
+			t.user_id = #userId:VARCHAR#		
+	</select>
+	
+	<!-- 根据userId查询是否存在此数据 shenwu -->
+	<select id="getContactsInfoByUserId" parameterClass="java.lang.Integer" resultClass="cn.tyiti.xfb.bojo.ContactsInfo">
+		SELECT
+			t.id,
+			t.user_id userId,
+			t.contact_name contactName,
+			t.contact_phone contactPhone,
+			t.create_time createTime,
+			t.remarks remarks
+		FROM
+			t_address_book t
+		WHERE
+			t.user_id = #userId:VARCHAR#
+	</select>
+	
+	<!-- 保存通讯录数据 shenwu -->
+	<insert id="saveContactsInfoList" parameterClass="java.util.List">
+		<![CDATA[
+          INSERT INTO t_contact_info(user_id, contact_name, contact_phone, remarks, create_time) values
+        ]]>
+       <iterate conjunction=",">
+            <![CDATA[(
+                  #contactInfoList[].userId:INTEGER#,
+                  #contactInfoList[].contactName:VARCHAR#,
+                  #contactInfoList[].contactPhone:VARCHAR#,
+                  #contactInfoList[].remarks:VARCHAR#,
+                  NOW()
+                  )]]>
+        </iterate>
+	</insert>
+</sqlMap>

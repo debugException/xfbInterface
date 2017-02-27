@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="customer">
+	 <select id="queryCustomerByIDType" parameterClass="java.util.HashMap" resultClass="cn.emagsoftware.xfb.pojo.Customer" >
+		select id as customerID,open_nick as openNick,open_id as openID,
+		       open_type as openType,regiest_time as regiestTime,last_login_time as lastLoginTime 
+		  from t_tysx_customer 
+		 where open_id = #openID# 
+		   and open_type = #openType# 
+	 </select>
+	 
+	 <insert id="insertCustomer" parameterClass="cn.emagsoftware.xfb.pojo.Customer" >
+	 	insert into t_tysx_customer(open_nick,open_id,open_type,regiest_time,last_login_time) 
+	 	                     values(#openNick#,#openID#,#openType#,#regiestTime#,#lastLoginTime#) 
+	 	
+	 	<selectKey resultClass="long" keyProperty="customerID">  
+        	select last_insert_id() as customerID from t_tysx_customer limit 1  
+    	</selectKey> 
+	 </insert>
+	 
+	 <update id="updateCustomer" parameterClass="cn.emagsoftware.xfb.pojo.Customer" >
+	 	update t_tysx_customer set open_nick=#openNick#,
+	 							   last_login_time=#lastLoginTime# 
+	 	where open_id=#openID# 
+	 	  and open_type=#openType# 
+	 	  and id = #customerID#
+	 </update>
+	 
+</sqlMap>

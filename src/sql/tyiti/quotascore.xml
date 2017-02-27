@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="quotascore" >
+	<!-- 根据用户ID获取用户的总得分 -->
+	<select id="getScoreByCode" parameterClass="java.lang.Integer" resultClass="cn.tyiti.xfb.bojo.QuotaScore">
+	 	SELECT
+			s.min_quota AS minQuota,
+			s.max_quota AS maxQuota,
+			s.min_score AS minScore,
+			s.max_score AS maxScore
+		FROM
+			t_quota_score s
+		WHERE
+			$score$ >= s.min_score
+		AND s.max_score >= $score$
+	</select>
+</sqlMap>

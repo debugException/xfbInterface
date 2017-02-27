@@ -1,0 +1,204 @@
+/**
+ * @(#)MemberInfoController.java	1.0	2015-8-12
+ * Copyright 2014 [天尧], Inc. All rights reserved.
+ * Website: http://www.tyiti.com/
+ */
+package cn.tyiti.xfb.controller;
+
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import cn.emagsoftware.frame.bean.BaseRspBean;
+import cn.emagsoftware.frame.controller.BaseController;
+import cn.emagsoftware.utils.Constant;
+import cn.emagsoftware.utils.json.JsonUtils;
+import cn.tyiti.xfb.bojo.CellphoneParameterInfo;
+import cn.tyiti.xfb.bojo.MemberInfo;
+import cn.tyiti.xfb.bojo.ProfessionInfo;
+import cn.tyiti.xfb.bojo.VerifyLogInfo;
+import cn.tyiti.xfb.service.MemberInfoService;
+
+
+/**
+ * 提升额度-获取个人信息/提升额度-提交个人信息Controller.
+ * 
+ * @version 1.0 2015-8-12
+ * @author Black
+ */
+@Controller
+@RequestMapping(value = "/memberInfo")
+public class MemberInfoController extends BaseController {
+	@Autowired
+	private MemberInfoService memberInfoServiceII;
+	/**
+     * 获取个人信息
+     *
+     * @param model
+     * @return
+     */
+    @RequestMapping(value = "/getMemberInfo", method = {RequestMethod.POST})
+    public String getMemberInfo(Map<String, String> model) {
+    	MemberInfo memberInfo = this.getParamConvertEntity(MemberInfo.class);
+        try {
+            memberInfo = memberInfoServiceII.getMemberInfo(memberInfo);	
+    		//成功设置
+            memberInfo.setCodeAndMsg(Constant.SUCCESS_CODE,Constant.ERROR_MESSAGE
+                    .get(Constant.SUCCESS_CODE));
+        } catch (Exception ex) {
+            log.error("CustomerController.getStateInfo", ex);
+            memberInfo.setCodeAndMsg(Constant.ERROR_CODE_9999, Constant.ERROR_MESSAGE.get(Constant.ERROR_CODE_9999));
+        }
+    	model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(memberInfo));
+        return RET_JSP;
+    }
+    
+	/**
+     * 提交个人信息
+     *
+     * @param model
+     * @return
+     */
+    @RequestMapping(value = "/saveMemberInfo", method = {RequestMethod.POST})
+    public String saveMemberInfo(Map<String, String> model) {
+    	MemberInfo memberInfo = this.getParamConvertEntity(MemberInfo.class);
+    	log.info("Geolocation:"+memberInfo.getGeolocation()+">>>>"+"Address:"+memberInfo.getAddress()+">>>>"+"City"
+    			+memberInfo.getCity()+">>>>"+"County"+memberInfo.getCounty()+">>>>"+"Province"+memberInfo.getProvince()+">>>>"
+    			+"VerifyState"+memberInfo.getVerifyState()+">>>>");
+    	BaseRspBean response = new BaseRspBean();
+        try {
+        	String sysVersion = this.request.getHeader("sysVersion");
+        	log.info("获取版本号为：>>>>>>>>>>>>>>>>>>>>>"+sysVersion);
+        	if("V1.2.0".equals(sysVersion) || "V1.2.0" == sysVersion) {//兼容V1.2.0
+        		log.info("此用户使用的是新版本V1.2.0,执行V1.2.0操作>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+        		memberInfoServiceII.saveMemberInfo(memberInfo);
+        		CellphoneParameter();//保存手机相关参数
+                //授信拦截地址
+                log.info("V1.2.0---授信拦截地址>>>>>>>>>>>>>>>>>>>>用户ID="+memberInfo.getUserId());
+                String uId = memberInfo.getUserId().toString();
+                log.info("uId>>>>>>>>>>>>>>>>>>>>>"+uId);
+                String ct = memberInfo.getCity();
+                log.info("ct>>>>>>>>>>>>>>>>>>>>>"+ct);
+                String city = null;
+                if(!"".equals(ct) || ct != null){
+                	city = ct.substring(0,ct.length()-1);
+                }
+                log.info("city>>>>>>>>>>>>>>>>>>>>>"+city);
+                ProfessionInfo pfi = memberInfoServiceII.getPartnerBaseInfo(uId);
+                String locationProvince = pfi.getLocationProvince();
+//                String partnerAddr = pfi.getPartnerAddr();
+                String geolocation = pfi.getGeolocation();
+                log.info("geolocation>>>>>>>>>>>>>>>>>>>>>"+pfi.getGeolocation()+"locationProvince"+pfi.getLocationProvince());
+                if(!"".equals(geolocation) || geolocation != null){
+                	if("".equals(city) || "".equals(locationProvince) || city==null || locationProvince == null){
+                		log.info("V1.2.0---商户地址>>>>>>>>>>>"+locationProvince+"与"+"个人信息住址>>>>>>>>>>>"+city+"地理位置>>>>>>>>>"+geolocation+",为空，已添加至审核日志表");
+                		updateUserStatus(uId);//更新状态
+                	}else {
+                    	if(locationProvince.indexOf(city)<0 && geolocation.indexOf(city)<0){
+                    		log.info("V1.2.0---商户地址>>>>>>>>>>>"+locationProvince+"与"+"个人信息住址>>>>>>>>>>>"+city+"地理位置>>>>>>>>>"+geolocation+",不一致，已添加至审核日志表");
+                    		updateUserStatus(uId);//更新状态
+                    	}
+                	}
+                }else {
+                	ExtractionOfPublic(city, locationProvince, uId);
+                }
+        	}else {//兼容V1.1.4
+        		log.info("此用户使用的是老版本V1.1.4,执行V1.1.4操作>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+        		memberInfoServiceII.saveMembersInfo(memberInfo);
+                //授信拦截地址
+                log.info("V1.1.4---授信拦截地址>>>>>>>>>>>>>>>>>>>>用户ID="+memberInfo.getUserId());
+                String uId = memberInfo.getUserId().toString();
+                String ct = memberInfo.getCity();
+                String city = null;
+                if(!"".equals(ct) || ct != null){
+                	city = ct.substring(0,ct.length()-1);
+                }
+                
+                ProfessionInfo pfi = memberInfoServiceII.getPartnerBaseInfo(uId);
+                String locationProvince = pfi.getLocationProvince();
+//                String partnerAddr = pfi.getPartnerAddr();
+                ExtractionOfPublic(city, locationProvince, uId);
+            }
+        	
+    		//成功设置
+            response.setCodeAndMsg(Constant.SUCCESS_CODE,Constant.ERROR_MESSAGE.get(Constant.SUCCESS_CODE));
+        } catch (Exception ex) {
+            log.error("CustomerController.getStateInfo", ex);
+            response.setCodeAndMsg(Constant.ERROR_CODE_9999, Constant.ERROR_MESSAGE.get(Constant.ERROR_CODE_9999));
+        }
+    	model.put(Constant.RETURN_MESSAGE, JsonUtils.getJSONString(response));
+        return RET_JSP;
+    }
+    
+    /**
+     * 保存手机相关参数
+     * @author shenwu
+     * @throws Exception
+     */
+    public void CellphoneParameter() {
+    	try {
+    		log.info("V1.2.0--->>>>>>>>>>>>>>>>>保存手机相关参数开始>>>>>>>>>>>>>>>>>");
+    		String uuid = this.request.getHeader("uuid");//手机唯一码
+     		String OSversion = this.request.getHeader("OSversion");//操作系统版本
+     		String phoneModel = this.request.getHeader("phoneModel");//手机型号
+     		String carrierName = this.request.getHeader("carrierName");//手机运营商
+     		String userIds = this.request.getHeader("userId");//用户Id
+     		log.info("uuid:"+uuid+">>>>>"+"OSversion"+OSversion+">>>>>"+"phoneModel"+phoneModel+">>>>>"+"carrierName"+carrierName+">>>>>"+"userIds"+userIds+">>>>>");
+     		CellphoneParameterInfo cellphoneParameterInfo = new CellphoneParameterInfo();
+     		cellphoneParameterInfo.setUuid(uuid);
+     		cellphoneParameterInfo.setUserId(userIds);
+     		cellphoneParameterInfo.setOSversion(OSversion);
+     		cellphoneParameterInfo.setPhoneModel(phoneModel);
+     		cellphoneParameterInfo.setCarrierName(carrierName);
+            //保存头信息，手机相关参数
+    		memberInfoServiceII.saveCellphoneParameterInfo(cellphoneParameterInfo);
+    		log.info("V1.2.0--->>>>>>>>>>>>>>>>>保存手机相关参数结束>>>>>>>>>>>>>>>>>");
+		} catch (Exception e) {
+			log.error("CustomerController.CellphoneParameter", e);
+			log.info("V1.2.0---保存手机相关参数出现异常，请查看CustomerController.saveCellphoneParameterInfo此方法");
+		}
+    }
+    
+    /**
+     * 提取公共部分
+     * @author shenwu
+     * @param city locationProvince uId
+     */
+    public void ExtractionOfPublic(String city, String locationProvince, String uId){
+    	if("".equals(city) || "".equals(locationProvince)|| city==null || locationProvince == null){
+    		log.info("商户地址>>>>>>>>>>>"+locationProvince+"与"+"个人信息住址>>>>>>>>>>>"+city+",为空，已添加至审核日志表");
+    		updateUserStatus(uId);//更新状态
+    	}else {
+        	if(locationProvince.indexOf(city)<0){
+        		log.info("商户地址>>>>>>>>>>>"+locationProvince+"与"+"个人信息住址>>>>>>>>>>>"+city+",不一致，已添加至审核日志表");
+        		updateUserStatus(uId);//更新状态
+        	}
+    	}
+    	
+    }
+    
+    /**
+     * 更新状态
+     * @author shenwu
+     * @throws Exception
+     */
+    public void updateUserStatus(String uId) {
+    	try {
+    		log.info("兼容V1.2.0和V1.1.4--->>>>>>>>>>>>>>>>>更新状态开始>>>>>>>>>>>>>>>>>");
+    		VerifyLogInfo vli = new VerifyLogInfo();
+    		vli.setUserid(uId);
+    		memberInfoServiceII.saveVerifyLogInfo(vli);
+    		log.info("兼容V1.2.0和V1.1.4---系统自动拦截,修改用户"+uId+"状态为6");
+    		Integer userId = Integer.valueOf(uId);
+    		memberInfoServiceII.updateUserStatus(userId);
+    		log.info("兼容V1.2.0和V1.1.4--->>>>>>>>>>>>>>>>>更新状态结束>>>>>>>>>>>>>>>>>");
+		} catch (Exception e) {
+			log.error("CustomerController.updateUserStatus", e);
+			log.info("兼容V1.2.0和V1.1.4---更新状态出现异常，请查看CustomerController.updateUserStatus此方法");
+		}
+    }
+    
+}

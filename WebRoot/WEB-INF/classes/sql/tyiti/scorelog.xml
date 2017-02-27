@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="scorelog" >
+	<!-- 插入新的得分记录信息 -->
+	<insert id="insert" parameterClass="cn.tyiti.xfb.bojo.ScoreLog">
+		INSERT INTO t_score_log (
+			user_id,
+			score,
+			verify_time,
+			flag
+		)
+		VALUES
+			(
+				#userId#,
+				#score#,
+				NOW(),
+				'A1'
+			)
+	</insert>
+	
+	<!-- 根据用户ID获取用户的总得分 -->
+	<select id="getScoreSumById" parameterClass="java.lang.Integer" resultClass="java.lang.Integer">
+ 	SELECT
+		SUM(score) 
+	FROM
+		t_score_log
+	WHERE
+		user_id = #userid#
+	</select>
+</sqlMap>

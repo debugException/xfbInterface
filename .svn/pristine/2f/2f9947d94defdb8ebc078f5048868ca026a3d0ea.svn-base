@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="interfacelog" >
+	<insert id="insertInterfacelog" parameterClass="cn.tyiti.xfb.bojo.InterfaceLog">
+			insert into t_interface_log 
+				<dynamic prepend="(" >
+			      <isNotNull prepend="," property="tableId" >
+			        table_id
+			      </isNotNull>
+			      <isNotNull prepend="," property="tableName" >
+			        table_name
+			      </isNotNull>
+			      <isNotNull prepend="," property="state" >
+			        state
+			      </isNotNull>
+			      ,create_time
+			      )
+			    </dynamic>
+			values
+				<dynamic prepend="(" >
+			      <isNotNull prepend="," property="tableId" >
+			        #tableId:INTEGER#
+			      </isNotNull>
+			      <isNotNull prepend="," property="tableName" >
+			        #tableName:VARCHAR#
+			      </isNotNull>
+			      <isNotNull prepend="," property="state" >
+			        #state:SMALLINT#
+			      </isNotNull>
+					,now()
+			      )
+			    </dynamic>
+	</insert>
+</sqlMap>

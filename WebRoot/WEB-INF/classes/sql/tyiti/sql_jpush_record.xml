@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="t_jpush_record">
+	<!--插入服务器极光推送记录 -->
+	<insert id="insert_jpushrecord" parameterClass="cn.tyiti.xfb.bojo.JpushRecord">
+		INSERT INTO t_jpush_record (
+			jpushmsgId,jpushtitle,jpushmessage,jpushtype,jpushtime,jpushlinkaddress,jpushdeadline
+		)
+		VALUES
+			(#jpushmsgId#,#jpushtitle#,#jpushmessage#,#jpushtype#,NOW(),#jpushlinkaddress#,#jpushdeadline#)
+	</insert>
+</sqlMap>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="syncdatabase" >
+  <resultMap id="BaseResultMap" class="cn.emagsoftware.xfb.pojo.SysUser" >
+    <result column="id" property="id" jdbcType="INTEGER" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="real_name" property="realName" jdbcType="VARCHAR" />
+    <result column="login_name" property="loginName" jdbcType="VARCHAR" />
+    <result column="pass_word" property="passWord" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="VARCHAR" />
+    <result column="card_number" property="description" jdbcType="VARCHAR" />
+  </resultMap>
+
+  <select id="getUserInfo" resultMap="BaseResultMap" >
+	  SELECT
+	  	su.id,
+		su.real_name,
+		su.login_name,
+		su.pass_word,
+		su.`status`,
+		su.type,
+		mi.card_number
+	FROM
+		t_member_info mi
+	JOIN t_sys_user su ON mi.user_id = su.id
+  </select>
+</sqlMap>

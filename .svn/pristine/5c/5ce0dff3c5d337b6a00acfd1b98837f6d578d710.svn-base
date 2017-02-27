@@ -1,0 +1,136 @@
+package cn.tyiti.xfb.service.blacklist.impl;   
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
+import org.springframework.stereotype.Service;
+
+import cn.emagsoftware.utils.SeqUtil;
+import cn.emagsoftware.xfb.dao.CreditDao;
+import cn.tyiti.xfb.bojo.blacklist.BlackListInfo;
+import cn.tyiti.xfb.bojo.blacklist.BlistInfo;
+import cn.tyiti.xfb.bojo.blacklist.QlblackInfo;
+import cn.tyiti.xfb.constant.GlobalConstant;
+import cn.tyiti.xfb.dao.blacklist.IqlblackInfoManageDao;
+import cn.tyiti.xfb.dao.blacklist.impl.BlistInfoManageDao;
+import cn.tyiti.xfb.service.blacklist.IqlblackInfoService;
+import cn.tyiti.xfb.utils.DocumentUtil;
+
+/** 
+ * 创建时间：2015-11-24 下午9:54:12  
+ * 项目名称：xfbManage  
+ * @author liminghua  
+ * @version 1.0   
+ * @since JDK 1.6
+ * 文件名称：QlblackInfoService.java  
+ * 类说明：  
+ */
+@Service("qlblackInfoService")  
+public class QlblackInfoService implements IqlblackInfoService {
+
+	@Autowired
+	private IqlblackInfoManageDao qlblackInfoManageDao ;
+	
+	@Autowired
+	private BlistInfoManageDao blistInfoManageDao ;
+	
+    @Autowired
+    private SeqUtil seqUtil;
+    
+	
+	@Autowired
+	private CreditDao creditDao ;
+    
+    
+	/**
+	 * 查询成功状态返回码
+	 * */
+	public final static String QUERY_SUCCESS = "0";
+	
+	/**
+	 *<p>Title:insertQlblackInfo</p>
+	 *<p>Description:</p>
+	 *@param params resultDoc document文档，  serviceCode接口名称， name姓名， idcode 身份证号， userId， loginName 手机号
+	 *@throws Exception
+	 *@see cn.tyiti.xfb.service.blacklist.IqlblackInfoService#insertQlblackInfo(java.util.Map)
+	 */
+	@Override
+	public  void insertQlblackInfo(Map<String, Object> params) throws Exception {
+		
+		Document resultDoc =  (Document)params.get("resultDoc");
+		String serviceCode = (String) params.get("serviceCode");
+		String name = (String) params.get("name");
+		String idcode = (String) params.get("idcode");
+		String userId = (String) params.get("userId");
+		String loginName = (String) params.get("loginName");
+		String msgId = (seqUtil.getNextValueBySeqName(GlobalConstant.GET_T_BLIST_MESSAGE_SEQ).toString());
+		
+		BlistInfo blistInfo = new BlistInfo();
+		String status = DocumentUtil.getStrByNodePath(resultDoc,"/DATA/MESSAGE/STATUS");
+		String value = DocumentUtil.getStrByNodePath(resultDoc,"/DATA/MESSAGE/VALUE");
+		
+		blistInfo.setId(msgId);
+		blistInfo.setName(name);
+		blistInfo.setUserId(userId);
+		blistInfo.setLoginName(loginName);
+		blistInfo.setIdcode(idcode);
+		blistInfo.setStatus(status);
+		blistInfo.setQueryInterface(serviceCode);
+		blistInfo.setValue(value);
+		blistInfoManageDao.insert(blistInfo);
+		
+		String resultsENText = "";
+		
+		if (QUERY_SUCCESS.equals(status)) {
+			resultsENText = DocumentUtil.getDecryptStrByNodePath(resultDoc,
+					"/DATA/RESULTS");
+
+			if (null != resultsENText && !"".equals(resultsENText)) {
+				Document resultDoc2 = DocumentHelper.parseText("<RESULTS>"
+						+ resultsENText + "</RESULTS>");
+
+				List nodes = resultDoc2.selectNodes("/RESULTS/RESULT");
+				if(nodes.size()>0){
+					Map  map = new HashMap();
+					map.put("modifyField", "qlblackinfo");
+					 map.put("userId", userId);
+					 map.put("creditCode", msgId);
+					creditDao.updateTrxNo(map);
+				}
+				for (Iterator it = nodes.iterator(); it.hasNext();) {
+					Element elm = (Element) it.next();
+					// System.out.println("id:"+elm.attributeValue("id"));
+					// System.out.println(elm.getName());
+
+					QlblackInfo qlblackInfo = new QlblackInfo();
+
+					qlblackInfo.setMsgId(msgId);
+					qlblackInfo.setName(name);
+					qlblackInfo.setIdcode(idcode);
+					qlblackInfo.setUserId(userId);
+					qlblackInfo.setLoginName(idcode);
+					qlblackInfo.setLoginName(loginName);
+
+					Element code = elm.element("CODE");
+					qlblackInfo.setCode(code.getText());
+
+					Element message = elm.element("MESSAGE");
+					qlblackInfo.setMessage(message.getText());
+
+					qlblackInfoManageDao.insert(qlblackInfo);
+
+				}
+			}
+		}
+	}
+}
+ 

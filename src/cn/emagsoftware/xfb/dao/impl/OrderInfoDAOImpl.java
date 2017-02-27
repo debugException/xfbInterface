@@ -1,0 +1,148 @@
+package cn.emagsoftware.xfb.dao.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.thoughtworks.xstream.mapper.Mapper.Null;
+
+import cn.emagsoftware.frame.dao.BaseDao;
+import cn.emagsoftware.frame.exception.BaseException;
+import cn.emagsoftware.utils.Constant;
+import cn.emagsoftware.xfb.dao.OrderInfoDAO;
+import cn.emagsoftware.xfb.pojo.OrderInfo;
+@Repository("orderInfoDAO")
+public class OrderInfoDAOImpl extends BaseDao implements OrderInfoDAO {
+
+    public OrderInfoDAOImpl() {
+        super();
+    }
+
+    public int deleteByPrimaryKey(Integer id) {
+        OrderInfo _key = new OrderInfo();
+        _key.setId(id);
+        int rows = getSqlMapClientTemplate().delete("t_order_info.deleteByPrimaryKey", _key);
+        return rows;
+    }
+
+    @Override
+    public int deleteByPrimaryKey(int id) {
+        return 0;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public void insert(OrderInfo record) {
+        getSqlMapClientTemplate().insert("t_order_info.insert", record);
+    }
+
+    public void insertSelective(OrderInfo record) {
+        getSqlMapClientTemplate().insert("t_order_info.insertSelective", record);
+    }
+
+    @Override
+    public OrderInfo selectByPrimaryKey(int id) {
+        OrderInfo _key = new OrderInfo();
+        _key.setId(id);
+        return  ( OrderInfo) getSqlMapClientTemplate().queryForObject("t_order_info.selectByPrimaryKey",_key);  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public OrderInfo selectByPrimaryKey(Integer id) {
+        OrderInfo _key = new OrderInfo();
+        _key.setId(id);
+        OrderInfo record = (OrderInfo) getSqlMapClientTemplate().queryForObject("t_order_info.selectByPrimaryKey", _key);
+        return record;
+    }
+
+    public int updateByPrimaryKeySelective(OrderInfo record) {
+        int rows = getSqlMapClientTemplate().update("t_order_info.updateByPrimaryKeySelective", record);
+        return rows;
+    }
+
+    public int updateByPrimaryKey(OrderInfo record) {
+        int rows = getSqlMapClientTemplate().update("t_order_info.updateByPrimaryKey", record);
+        return rows;
+    }
+
+    @Override
+    public void orderCancellation(OrderInfo orderInfo) {
+        //To change body of implemented methods use File | Settings | File Templates.
+        getSqlMapClientTemplate().update("t_order_info.orderCancellation", orderInfo);
+    }
+    
+    /**
+     * 订单分期时修改订单状态
+     * */
+	@Override
+	public void orderStage(OrderInfo orderInfo) {
+		getSqlMapClientTemplate().update("t_order_info.orderStage", orderInfo);
+	}
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Map<String, Object> orderListByUserid(int userId,String flag, long startNumber, long pageSize) throws Exception {
+        try {
+            Map<String, Object> map = new HashMap<String, Object>(); 
+            map.put("pageSize", pageSize);
+            map.put("pageStart", startNumber);
+            map.put("ownerUserid", userId);
+            List<OrderInfo> orderInfoList = null ;
+            Object total = null ;
+            if(null==flag|| "".equals(flag) || "A1".equals(flag)){
+            	orderInfoList = (List<OrderInfo>) this.getSqlMapClientTemplate().queryForList("t_order_info.getOrderByUserID", map);
+            	  total = this.getSqlMapClientTemplate().queryForObject("t_order_info.getOrderByUserID_count", map);
+            }else if("A2".equals(flag)){
+            	orderInfoList = (List<OrderInfo>) this.getSqlMapClientTemplate().queryForList("t_order_info.getOrderNoConfirmByUserID", map);
+            	  total = this.getSqlMapClientTemplate().queryForObject("t_order_info.selectByUserIdCount", userId);
+            }
+            map.put("orderList", orderInfoList);
+            map.put("orderTotal", null == total ? 0 : (Integer) total);
+            return map;
+        } catch (Exception e) {
+            logger.error("OrderInfoDAOImpl.orderListByUserid", e);
+            throw new BaseException(Constant.ERROR_CODE_9995,
+                    Constant.ERROR_MESSAGE.get(Constant.ERROR_CODE_9995));
+        }
+    }
+
+	@Override
+	public Map<String, Object> findOrderInfoByOwnerUserid(OrderInfo orderInfo,
+			int startNum, int pageSize) throws Exception {
+		try {
+            Map<String, Object> map = new HashMap<String, Object>();
+            map.put("pageSize", pageSize);
+            map.put("pageStart", startNum);
+            map.put("ownerUserid", orderInfo.getOwnerUserid());
+            List<OrderInfo> orderInfoList =
+                    (List<OrderInfo>) this.getSqlMapClientTemplate().queryForList("t_order_info.findOrderInfoByOwnerUserid", map);
+            Object total = this.getSqlMapClientTemplate().queryForObject("t_order_info.selectByUserIdCount", orderInfo.getOwnerUserid());
+            map.put("orderInfoList", orderInfoList);
+            map.put("total", null == total ? 0 : (Integer) total);
+            return map;
+        } catch (Exception e) {
+            logger.error("OrderInfoDAOImpl.findOrderInfoByOwnerUserid", e);
+            throw new BaseException(Constant.ERROR_CODE_9995,
+                    Constant.ERROR_MESSAGE.get(Constant.ERROR_CODE_9995));
+        }
+	}
+
+	@Override
+	public void updateOrderStatusByOrderId(Map paramMap) {
+		this.getSqlMapClientTemplate().update("t_order_info.updateOrderStatus", paramMap);
+	}
+
+	/* （non-Javadoc）
+	 * <p>Title: selectByUserIdCount</p>
+	 * <p>Description: </p>
+	 * @param userId
+	 * @return
+	 * @see cn.emagsoftware.xfb.dao.OrderInfoDAO#selectByUserIdCount(java.lang.Integer)
+	 */
+	@Override
+	public int selectByUserIdCount(Integer userId) {
+		// TODO Auto-generated method stub
+		return (Integer)getSqlMapClientTemplate().queryForObject("t_order_info.selectByUserIdCount", userId);
+	}
+	
+
+}

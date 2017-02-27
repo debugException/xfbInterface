@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="t_sys_log" >
+  <resultMap id="BaseResultMap" class="cn.emagsoftware.xfb.pojo.SysLog" >
+    <result column="id" property="id" jdbcType="INTEGER" />
+    <result column="log_type" property="logType" jdbcType="VARCHAR" />
+    <result column="description" property="description" jdbcType="VARCHAR" />
+    <result column="operator_id" property="operatorId" jdbcType="INTEGER" />
+    <result column="ip" property="ip" jdbcType="VARCHAR" />
+    <result column="operator_time" property="operatorTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, log_type, description, operator_id, ip, operator_time
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterClass="cn.emagsoftware.xfb.pojo.SysLog" >
+    select 
+    <include refid="t_sys_log.Base_Column_List" />
+    from t_sys_log
+    where id = #id:INTEGER#
+  </select>
+  <delete id="deleteByPrimaryKey" parameterClass="cn.emagsoftware.xfb.pojo.SysLog" >
+    delete from t_sys_log
+    where id = #id:INTEGER#
+  </delete>
+  <insert id="insert" parameterClass="cn.emagsoftware.xfb.pojo.SysLog" >
+    insert into t_sys_log (id, log_type, description, operator_id, 
+      ip, operator_time)
+    values (#id:INTEGER#, #logType:VARCHAR#, #description:VARCHAR#, #operatorId:INTEGER#, 
+      #ip:VARCHAR#, now())
+  </insert>
+  <insert id="insertSelective" parameterClass="cn.emagsoftware.xfb.pojo.SysLog" >
+    insert into t_sys_log
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        id
+      </isNotNull>
+      <isNotNull prepend="," property="logType" >
+        log_type
+      </isNotNull>
+      <isNotNull prepend="," property="description" >
+        description
+      </isNotNull>
+      <isNotNull prepend="," property="operatorId" >
+        operator_id
+      </isNotNull>
+      <isNotNull prepend="," property="ip" >
+        ip
+      </isNotNull>
+      <isNotNull prepend="," property="operatorTime" >
+        operator_time
+      </isNotNull>
+      )
+    </dynamic>
+    values
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        #id:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="logType" >
+        #logType:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="description" >
+        #description:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="operatorId" >
+        #operatorId:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="ip" >
+        #ip:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="operatorTime" >
+        #operatorTime:TIMESTAMP#
+      </isNotNull>
+      )
+    </dynamic>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterClass="cn.emagsoftware.xfb.pojo.SysLog" >
+    update t_sys_log
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="logType" >
+        log_type = #logType:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="description" >
+        description = #description:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="operatorId" >
+        operator_id = #operatorId:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="ip" >
+        ip = #ip:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="operatorTime" >
+        operator_time = #operatorTime:TIMESTAMP#
+      </isNotNull>
+    </dynamic>
+    where id = #id:INTEGER#
+  </update>
+  <update id="updateByPrimaryKey" parameterClass="cn.emagsoftware.xfb.pojo.SysLog" >
+    update t_sys_log
+    set log_type = #logType:VARCHAR#,
+      description = #description:VARCHAR#,
+      operator_id = #operatorId:INTEGER#,
+      ip = #ip:VARCHAR#,
+      operator_time = #operatorTime:TIMESTAMP#
+    where id = #id:INTEGER#
+  </update>
+</sqlMap>

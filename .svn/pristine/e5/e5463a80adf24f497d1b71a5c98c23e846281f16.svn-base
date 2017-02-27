@@ -1,0 +1,370 @@
+package cn.tyiti.xfb.utils.jpushUtil;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import cn.jpush.api.JPushClient;
+import cn.jpush.api.common.resp.APIConnectionException;
+import cn.jpush.api.common.resp.APIRequestException;
+import cn.jpush.api.push.PushResult;
+import cn.jpush.api.push.model.Options;
+import cn.jpush.api.push.model.Platform;
+import cn.jpush.api.push.model.PushPayload;
+import cn.jpush.api.push.model.audience.Audience;
+import cn.jpush.api.push.model.notification.AndroidNotification;
+import cn.jpush.api.push.model.notification.IosNotification;
+import cn.jpush.api.push.model.notification.Notification;
+import cn.tyiti.xfb.service.jpush.IjpushInfoService;
+
+/**
+ * 极光推送
+ *<p>Title: MessagePush</p>
+ *<p>Description:</p>
+ *<p>Company: 天尧信息</p>
+ *@author: liminghua
+ *@date： 日期：2015-11-30 时间：下午2:27:42
+ */
+@Service("jpushMessage")  
+public class JpushMessage  {
+	
+	@Autowired
+	private IjpushInfoService jpushInfoService;
+	
+	static Logger log = Logger.getLogger(JpushMessage.class);
+  
+	private static final  String appKey="7e824aeabb65dec7a78ccc48" ;
+	private static final  String masterSecret="552b33675af98d99112c13ed" ;
+	//private  String appKey="" ;
+	//private  String masterSecret="" ;
+	private JPushClient jpushClient;
+	private String title;
+	private String message;
+    
+    /*static {
+    	appKey = PropertiesUtil.getInstance().getJpush_appKey();
+    	masterSecret = PropertiesUtil.getInstance().getJpush_masterSecret();
+    }*/
+	
+	public JPushClient getJpushClient() {
+		return jpushClient;
+	}
+	
+	public void setJpushClient(JPushClient jpushClient) {
+		this.jpushClient = jpushClient;
+	}
+
+	public JpushMessage() {
+	}
+	public JpushMessage(String message) {
+		//this.appKey = PropertiesUtil.getInstance().getJpush_appKey();
+    	//this.masterSecret = PropertiesUtil.getInstance().getJpush_masterSecret();
+		this.message = message;
+		jpushClient = new JPushClient(masterSecret.trim(), appKey.trim(), 3);
+	}
+	/*
+	 * message 内容，title标题
+	 */
+	public JpushMessage(String title, String message ) {
+		this(message);
+		this.title = title;
+	}
+
+
+	/**
+	 * <p>Title:buildPushpayload_AllPlatform_alias</p>
+	 * <p>Description:构建通过标签推送的PushPayload</p>
+	 * @param alias
+	 * @return
+	 */
+	public PushPayload buildPushpayload_AllPlatform_alias(
+			Set<String> alias) {
+		return PushPayload
+				.newBuilder()
+				.setPlatform(Platform.all())
+				.setOptions(Options.newBuilder().setApnsProduction(true).build())
+				.setAudience(Audience.alias(alias))
+				.setNotification(
+						Notification
+								.newBuilder()
+								.setAlert(message)
+								.addPlatformNotification(
+										AndroidNotification.newBuilder()
+												.setTitle(title).setBuilderId(2).build())
+								.addPlatformNotification(
+										IosNotification.newBuilder().build())
+								.build())
+				.build();
+	}
+
+	/**
+	 * <p>Title:buildPushpayload_AllPlatform_tags</p>
+	 * <p>Description:构建tagsPushPayload</p>
+	 * @param tag
+	 * @return
+	 */
+	public PushPayload buildPushpayload_AllPlatform_tags(String tag) {
+		return PushPayload
+				.newBuilder()
+				.setPlatform(Platform.all())
+				.setAudience(Audience.tag(tag))
+				.setNotification(
+						Notification
+								.newBuilder()
+								.setAlert(message)
+								.addPlatformNotification(
+										AndroidNotification.newBuilder()
+												.setTitle(title).setBuilderId(2).build())
+								.addPlatformNotification(
+										IosNotification.newBuilder().build())
+								.build())
+								.setOptions(Options.newBuilder().setApnsProduction(true).build())						
+								.build();
+	}
+
+	public PushPayload buildPushpayload_AllPlatform() {
+		return PushPayload
+				.newBuilder()
+				.setPlatform(Platform.all())
+				.setAudience(Audience.all())
+				.setNotification(
+						Notification
+								.newBuilder()
+								.setAlert(message)
+								.addPlatformNotification(
+										AndroidNotification.newBuilder()
+												.setTitle(title).setBuilderId(2).build())
+								.addPlatformNotification(
+										IosNotification.newBuilder().build())
+								.build())
+								.setOptions(Options.newBuilder().setApnsProduction(true).build())							
+								.build();
+	}
+	
+	/**
+	 * 通过标签推送消息
+	 * <p>Title:jpushMessageByAlias</p>
+	 * <p>Description:	通过标签集合推送</p>
+	 * @param title		标题
+	 * @param message	推送内容
+	 * @param set		推送人userID Set 集合
+	 * @return 
+	 */
+	public  long jpushMessageByAlias(String title,String message, Set<String> alias){
+		JpushMessage mp = new JpushMessage(message,title);
+		PushPayload  pushpay  = mp.buildPushpayload_AllPlatform_alias(alias);
+		long msgId = 0;
+		try {
+			log.info("jpushMessage方法调用  userId-->>"+alias+"message-->>"+message+"title-->>"+title);
+			PushResult result = mp.getJpushClient().sendPush(pushpay);
+			System.out.println(result);
+			msgId = result.msg_id;
+			Map<String, Object> params = new HashMap<String, Object>();
+			params.put("jpushtitle", title);
+			params.put("jpushmessage", message);
+			params.put("jpushtype", "alias");
+			params.put("jpushmsgId", String.valueOf(msgId));
+			params.put("jpushlinkaddress", "");
+			params.put("jpushdeadline", "");
+			log.info("保存推送内容-->msgId"+msgId);
+			jpushInfoService.insertJpushInfo(params);
+			log.info("推送记录保存成功");
+		} catch (APIConnectionException e) {
+			log.error("推送异常-APIConnectionException--->", e);
+		} catch (APIRequestException e) {
+			log.error("推送异常-APIRequestException--->", e);
+			msgId = e.getMsgId();
+		}
+		return msgId ;
+	}
+	/**
+	 * 向所有人发送消息
+	 * @Description:
+	 * @author: liminghua
+	 * @param @return
+	 * @return long
+	 * @throws
+	 */
+	public long sendPushAll() {
+		JpushMessage mp = new JpushMessage(title,message);
+		PushPayload payload = mp.buildPushpayload_AllPlatform();
+		long msgId = 0;
+		try {
+			log.info("jpushMessage方法调用 --------------message-->>"+message+"title-->>"+title);
+			PushResult result = jpushClient.sendPush(payload);
+			msgId = result.msg_id;
+			Map<String, Object> params = new HashMap<String, Object>();
+			params.put("jpushtitle", title);
+			params.put("jpushmessage", message);
+			params.put("jpushtype", "all");
+			params.put("jpushmsgId", String.valueOf(msgId));
+			params.put("jpushlinkaddress", "");
+			params.put("jpushdeadline", "");
+			log.info("保存推送内容-->msgId"+msgId);
+			jpushInfoService.insertJpushInfo(params);
+			log.info("推送记录保存成功");
+		} catch (APIConnectionException e) {
+			log.error("推送异常-APIConnectionException--->", e);
+		} catch (APIRequestException e) {
+			log.error("推送异常-APIRequestException--->", e);
+			msgId = e.getMsgId();
+		}
+		return msgId;
+	}
+
+	/**
+	 * 向指定组发送消息
+	 * 
+	 * @param tag
+	 *            组名称
+	 * @return 消息id
+	 */
+	public long sendPushTag(String title ,String message,String tag) {
+		JpushMessage mp = new JpushMessage(title,message);
+		PushPayload payloadtag = mp.buildPushpayload_AllPlatform_tags(tag);
+		
+		long msgId = 0;
+		try {
+			log.info("jpushMessage方法调用 --------------message-->>"+message+"title-->>"+title);
+			PushResult result = jpushClient.sendPush(payloadtag);
+			msgId = result.msg_id;
+			Map<String, Object> params = new HashMap<String, Object>();
+			params.put("jpushtitle", title);
+			params.put("jpushmessage", message);
+			params.put("jpushtype", "tag");
+			params.put("jpushmsgId", String.valueOf(msgId));
+			params.put("jpushlinkaddress", "");
+			params.put("jpushdeadline", "");
+			log.info("保存推送内容-->msgId"+msgId);
+			jpushInfoService.insertJpushInfo(params);
+			log.info("推送记录保存成功");
+		} catch (APIConnectionException e) {
+			log.error("推送异常-APIConnectionException--->", e);
+		} catch (APIRequestException e) {
+			log.error("推送异常-APIRequestException--->", e);
+			msgId = e.getMsgId();
+		}
+		return msgId;
+	}
+	/**
+	 * <p>Title:jpushMessageToOneByAlias</p>
+	 * <p>Description:推送给单个人方法，直接传userId</p>
+	 * @param title 标题 
+	 * @param message 推送内容
+	 * @param userId 用户uerId
+	 * @return 一次推送的id，极光返回 
+	 */
+	public long jpushMessageToOneByAlias(String title,String message, String userId){
+		JpushMessage mp = new JpushMessage(title,message);
+		Set<String> allsSet = new HashSet<String>();
+		allsSet.add(userId);
+		PushPayload  pushpay  = mp.buildPushpayload_AllPlatform_alias(allsSet);
+		long msgId = 0;
+		try {
+			log.info("jpushMessage方法调用 ---- userId---------------------->>"+userId+"message-->>"+message+"title-->>"+title);
+			PushResult result = mp.getJpushClient().sendPush(pushpay);
+			System.out.println(result);
+			msgId = result.msg_id;
+			Map<String, Object> params = new HashMap<String, Object>();
+			params.put("jpushtitle", title);
+			params.put("jpushmessage", message);
+			params.put("jpushtype", "alias");
+			params.put("jpushmsgId", String.valueOf(msgId));
+			params.put("jpushlinkaddress", "");
+			params.put("jpushdeadline", "");
+			log.info("保存推送内容-->msgId"+msgId);
+			jpushInfoService.insertJpushInfo(params);
+			log.info("推送记录保存成功");
+		} catch (APIConnectionException e) {
+			log.error("推送异常-APIConnectionException--->", e);
+		} catch (APIRequestException e) {
+			log.error("推送异常-APIRequestException--->", e);
+			msgId = e.getMsgId();
+		}
+		return msgId ;
+	}
+	
+	/**
+	 * <p>Title:jpushMessageToAllByAlias</p>
+	 * <p>Description:	推送到所有 人</p>
+	 * @param title		标题
+	 * @param message	推送内容
+	 */
+	public Long jpushMessageToAllByAlias(String title,String message){
+		JpushMessage mp = new JpushMessage(message,title);
+		PushPayload  pushpay  =  mp.buildPushpayload_AllPlatform();
+		long msgId = 0;
+		try {
+			log.info("jpushMessage方法调用  ---------------------->>"+message+"title-->>"+title);
+			PushResult result = mp.getJpushClient().sendPush(pushpay);
+			System.out.println(result);
+			msgId = result.msg_id;
+			Map<String, Object> params = new HashMap<String, Object>();
+			params.put("jpushtitle", title);
+			params.put("jpushmessage", message);
+			params.put("jpushtype", "alias");
+			params.put("jpushmsgId", String.valueOf(msgId));
+			params.put("jpushlinkaddress", "");
+			params.put("jpushdeadline", "");
+			log.info("保存推送内容-->msgId"+msgId);
+			jpushInfoService.insertJpushInfo(params);
+			log.info("推送记录保存成功");
+		} catch (APIConnectionException e) {
+			log.error("Connection error. Should retry later. ", e);
+		} catch (APIRequestException e) {
+			log.info("HTTP Status: " + e.getStatus());
+			log.info("Error Code: " + e.getErrorCode());
+			log.info("Error Message: " + e.getErrorMessage());
+			log.info("Msg ID: " + e.getMsgId());
+			msgId = e.getMsgId();
+		}
+		return msgId ;
+	}
+	
+	/**
+	 * <p>Title:jpushMessageToAllByAlias</p>
+	 * <p>Description:	推送到所有 人</p>
+	 * @param title		标题
+	 * @param message	推送内容
+	 */
+	
+	/*public static void main(String[] args) {
+		
+		String title = "信分宝"; 
+		String message="生产环境推送测试 ====================";
+		JpushMessage mp = new JpushMessage(title,message);
+		Set<String> allsSet = new HashSet<String>();
+		allsSet.add("1039");
+		//PushPayload  pushpay  = mp.buildPushpayload_AllPlatform_alias(allsSet);
+	
+		PushPayload  pushpay  = mp.buildPushpayload_AllPlatform();
+		long msgId = 0;
+		try {
+			PushResult result = mp.getJpushClient().sendPush(pushpay);
+			System.out.println(result);
+			msgId = result.msg_id;
+			//log.info("Got result - userId-->>"+userId+"message-->>"+message+"title-->>"+title);
+			Map<String, Object> params = new HashMap<String, Object>();
+			params.put("jpushtitle", title);
+			params.put("jpushmessage", message);
+			params.put("jpushtype", "alias");
+			params.put("jpushmsgId", String.valueOf(msgId));
+			params.put("jpushlinkaddress", "");
+			params.put("jpushdeadline", "");
+			log.info("保存推送内容-->msgId"+msgId);
+			//jpushInfoService.insertJpushInfo(params);
+		} catch (APIConnectionException e) {
+			log.error("推送异常-APIConnectionException--->", e);
+		} catch (APIRequestException e) {
+			log.error("推送异常-APIRequestException--->", e);
+			msgId = e.getMsgId();
+		}
+		//return msgId ;}
+		//return msgId ;
+	}*/
+}

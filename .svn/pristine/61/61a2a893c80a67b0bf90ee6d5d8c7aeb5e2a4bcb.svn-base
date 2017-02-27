@@ -1,0 +1,238 @@
+package cn.tyiti.xfb.utils.blacklist;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URL;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.xml.namespace.QName;
+import javax.xml.ws.Service;
+
+import org.apache.log4j.Logger;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.DocumentHelper;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import cn.tyiti.xfb.service.blacklist.IblackListInfoService;
+import cn.tyiti.xfb.service.blacklist.IsybadInfoService;
+import cn.tyiti.xfb.utils.DocumentUtil;
+import cn.tyiti.xfb.utils.PropertiesUtil;
+import cn.tyiti.xfb.webservice.blacklist.ICreditInfoExtWebservice;
+
+@org.springframework.stereotype.Service("syBadInfoBlackListQuery")
+public class SyBadInfoBlackListQuery {
+	
+	private static Logger log = Logger.getLogger(SyBadInfoBlackListQuery.class);
+	
+	
+	@Autowired
+	private IsybadInfoService  sybadInfoService ;
+	/**
+	 * 查询成功状态返回码
+	 * */
+	public final static String QUERY_SUCCESS = "0";
+	
+	//查询黑名单 共三个数据源
+	
+	/**
+	 * 请求编码 第一个数据源
+	 * */
+	private final static String serviceCode ="SyBadInfoAction";
+	
+	/**
+	 * 	调用的服务具体信息
+	 * */
+	private final static String nameSpace = "http://webservice.internetfinance.com/";
+	/**
+	 * 	调用的服务具体信息
+	 * */
+	private final static String interfaceName = "creditInfoExtWebservice";
+
+	/**
+	 * 异常状态集
+	 * */
+	private  static Map<String,String> statusMap;
+	
+	
+	static{
+		statusMap = new HashMap<String, String>();
+		statusMap.put("-9001", "无效的密钥,确认密钥是否正确或联系接口提供方");
+		statusMap.put("-9002", "加密算法错误,使用RSA加密");
+		statusMap.put("-9003", "密文信息错误,确认加密信息是否完整");
+		statusMap.put("-9004", "查询参数信息错误");
+		statusMap.put("-9005", "查询参数XML格式错误");
+		statusMap.put("-9006", "IP地址不受信任,联系接口提供方");
+		statusMap.put("-9007", "用户名或密码错误");
+		statusMap.put("-9008", "该接口服务调用异常,联系接口提供方");
+		statusMap.put("-9009", "用户未设置公钥  向联系接口提供方提供公钥");
+		statusMap.put("-9010", "系统超时 ");
+		statusMap.put("-8001", "没有设置该服务单价，请联系客服  ");
+		statusMap.put("1001", "没有系统访问权限 ");
+		statusMap.put("1002", "请求的服务不存在 ");
+		statusMap.put("1003", "用户没有访问服务的权限 ");
+		statusMap.put("1004", "获取服务实例出错");
+		statusMap.put("1005", "整体返回结果报文为空 ");
+		statusMap.put("1006", "流水日志插入数据库失败 ");
+		statusMap.put("0012", "查询条件有误");
+		statusMap.put("401", "姓名不能为空");
+		statusMap.put("402", "身份证号不能为空");
+		statusMap.put("403", "身份证号格式不正确");
+		statusMap.put("404", "机构号不能为空");
+		statusMap.put("405", "机构密码不能为空");
+		statusMap.put("406", "机构号或机构密码错误");
+		statusMap.put("407", "IP没有访问权限");
+		statusMap.put("408", "无查询权限");
+		statusMap.put("409", "费用不足，请充费，谢谢！");
+		statusMap.put("410", "无请求数据类型参数");
+	}
+	
+	/**
+	 * <p>Title:getReturnMsg</p>
+	 * <p>Description:建立连接，发送请求</p>
+	 * @param parameter 
+	 * @return 获取返回结果的XML字符串
+	 * @throws IOException
+	 */
+	private  String getReturnMsg(String parameter) throws  IOException {
+		// 创建访问wsdl服务地址的url
+		URL url = new URL(PropertiesUtil.getInstance().getWebServiceUrl());
+		// 通过Qname指明服务的具体信息
+		QName sname = new QName(nameSpace, interfaceName);
+		// 创建服务
+		Service service = Service.create(url, sname);
+		//获取接口
+		ICreditInfoExtWebservice ms = service.getPort(ICreditInfoExtWebservice.class);
+		
+		return ms.queryServiceItemByCode(parameter); 
+	}
+	
+	/**
+	 * <p>Title:blakListValid</p>
+	 * <p>Description:黑名单查询方法</p>
+	 * @param name 姓名
+	 * @param idcode 身份证号
+	 * @return 查询结果标志符 0表示成功
+	 * @throws  
+	 * @throws IOException
+	 * @throws InvalidKeyException
+	 * @throws NoSuchAlgorithmException
+	 * @throws InvalidKeySpecException
+	 * @throws NoSuchPaddingException
+	 * @throws IllegalBlockSizeException
+	 * @throws BadPaddingException
+	 */
+	public  String blackListQuery(String name,String idcode,String userId,String loginName) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException {
+  		String result = "参数不能为空";
+  		if(null!=name&&!"".equals(name)&&null!=idcode&&!"".equals(idcode)){
+	  		result = "查询失败,请确认网络是否正常";
+			String requestparameter = "";
+			try {
+				//0代表查询类别   身份证查询
+				requestparameter = getRequestParameter(name, idcode);
+				String msgString = getReturnMsg(requestparameter);
+				System.out.println(msgString);
+				Document doc = DocumentHelper.parseText(msgString);
+				result = saveResultDocument(doc, name, idcode,userId,loginName);
+			} catch (DocumentException e) {
+				log.error("解析神州融返回结果异常:" + requestparameter);
+			}
+  		}
+		return result;
+	}
+	/**
+	 * <p>Title:saveResultDocument</p>
+	 * <p>Description:根据不同的方法 保XML数据到对应的数据库</p>
+	 * @param doc
+	 * @param name
+	 * @param idcode
+	 * @return
+	 * @throws InvalidKeyException
+	 * @throws UnsupportedEncodingException
+	 * @throws NoSuchAlgorithmException
+	 * @throws InvalidKeySpecException
+	 * @throws NoSuchPaddingException
+	 * @throws IllegalBlockSizeException
+	 * @throws BadPaddingException
+	 * @throws IOException
+	 * @throws DocumentException
+	 */
+	public  String saveResultDocument(Document doc,String name ,String idcode,String userId,String loginName) throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, DocumentException {
+		String resultStr = DocumentUtil.getStrByNodePath(doc,"/DATA/MESSAGE/STATUS");
+		String resultValue = DocumentUtil.getStrByNodePath(doc,"/DATA/MESSAGE/VALUE");
+		if(QUERY_SUCCESS.equals(resultStr)){
+			//查询成功
+			String resultsENText = DocumentUtil.getDecryptStrByNodePath(doc,"/DATA/RESULTS");
+			//查询结果results字符串
+			log.info("查询用户"+name+",身份证号码为"+idcode+"的返回结果为"+resultsENText);
+		}else{
+			log.info("神州融返回CODE："+resultStr+",MSG:"+resultValue);
+		}
+		//保存查询结果
+		saveResult(doc,name,idcode,serviceCode, userId, loginName);
+		return resultStr ;
+	}
+	
+	public  void saveResult(Document resultDoc, String name, String idcode, String resultcode,String userId,String loginName){
+		  Map<String, Object> mp = new HashMap<String, Object>();
+		  mp.put("resultDoc", resultDoc);
+		  mp.put("serviceCode", serviceCode);
+		  mp.put("name", name);
+		  mp.put("idcode", idcode);
+		  mp.put("userId", userId);
+		  mp.put("loginName", loginName);
+		  try {
+			   sybadInfoService.insertSybadInfo(mp);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * 
+	 * <p>Title:getParameter</p>
+	 * <p>Description: 将获取的参数放进map里</p>
+	 * @param Name 姓名
+	 * @param idcode 身份证号
+	 * @return 返回 map
+	 */
+	private  Map<String,String> getParameter(String name,String idcode){
+		Map<String,String> parameter = new HashMap<String,String>();
+		parameter.put("SERVICECODE", serviceCode);
+		parameter.put("IDCODE",idcode);
+		parameter.put("NAME", name);
+		return parameter;
+	}
+	/**
+	 * <p>Title:getRequestParameter</p>
+	 * <p>Description:获取入参</p>
+	 * @param name 用户名
+	 * @param idcode 身份证号 
+	 * @param blackListCheckType  查询类别
+	 * @return
+	 * @throws InvalidKeyException
+	 * @throws NoSuchAlgorithmException
+	 * @throws InvalidKeySpecException
+	 * @throws NoSuchPaddingException
+	 * @throws IllegalBlockSizeException
+	 * @throws BadPaddingException
+	 * @throws IOException
+	 * @throws DocumentException
+	 */
+	private  String getRequestParameter (String name,String idcode) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, DocumentException{
+		String parma="";
+		Map<String,String> parameter = getParameter(name,idcode);
+		String userName = PropertiesUtil.getInstance().getWebServiceUserName() ;
+		String password = PropertiesUtil.getInstance().getWebServicepassword() ;
+		parma = DocumentUtil.generateRequestParameterXML(userName,password,parameter);
+		return parma ;
+	}
+	
+}

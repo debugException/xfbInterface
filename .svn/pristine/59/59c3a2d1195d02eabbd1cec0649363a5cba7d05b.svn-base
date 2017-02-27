@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="imageinfo" >
+	<insert id="insertImageinfo" parameterClass="cn.tyiti.xfb.bojo.ImageInfo">
+			insert into t_image_info 
+				<dynamic prepend="(" >
+			      <isNotNull prepend="," property="userId" >
+			        user_id
+			      </isNotNull>
+			      <isNotNull prepend="," property="imagePath" >
+			        image_path
+			      </isNotNull>
+			      <isNotNull prepend="," property="type" >
+			        type
+			      </isNotNull>
+			      ,verify_state
+			      )
+			    </dynamic>
+			values
+				<dynamic prepend="(" >
+			      <isNotNull prepend="," property="userId" >
+			        #userId:INTEGER#
+			      </isNotNull>
+			      <isNotNull prepend="," property="imagePath" >
+			        #imagePath:VARCHAR#
+			      </isNotNull>
+			      <isNotNull prepend="," property="type" >
+			        #type:VARCHAR#
+			      </isNotNull>
+					,'A1'
+			      )
+			    </dynamic>
+	</insert>
+	
+	<!-- 修改图片审核状态 草稿A1 审核中A3 -->
+    <update id="updateImageVerifyState" parameterClass="cn.tyiti.xfb.bojo.ImageInfo">
+    
+	    UPDATE t_image_info t
+		JOIN (
+			SELECT
+						max(id) as id
+					FROM
+						t_image_info
+					WHERE
+						user_id = #userId:INTEGER#
+					AND verify_state = 'A1'
+					AND type IN ($type$) 
+					GROUP BY
+						type
+		) f ON t.id = f.id
+		SET t.verify_state = 'A3',
+		 t.submit_time = now()
+		 
+	</update>
+</sqlMap>

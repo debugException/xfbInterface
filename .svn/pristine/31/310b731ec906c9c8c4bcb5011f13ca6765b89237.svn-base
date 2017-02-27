@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="t_blacklist_result">
+	<!-- 	插入审黑名单 -->
+	<insert id="insert_blacklist" parameterClass="cn.tyiti.xfb.bojo.blacklist.BlackListInfo">
+		INSERT INTO t_blacklist_result (id,name,userId,loginName,idcode,idtype, msgId, grade, sourceid, databuildtime, moneybound, datastatus, querytime
+		)
+		VALUES
+			(#id#,#name#,#userId#,#loginName#,#idcode#,#idtype#,#msgId#,#grade#,#sourceid#,#databuildtime#,#moneybound#, #datastatus#,NOW())
+	</insert>
+</sqlMap>

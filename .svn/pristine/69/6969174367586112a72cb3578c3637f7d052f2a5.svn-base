@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="t_sys_user" >
+  <resultMap id="BaseResultMap" class="cn.emagsoftware.xfb.pojo.SysUser" >
+    <result column="id" property="id" jdbcType="INTEGER" />
+    <result column="login_name" property="loginName" jdbcType="VARCHAR" />
+    <result column="real_name" property="realName" jdbcType="VARCHAR" />
+    <result column="pass_word" property="passWord" jdbcType="VARCHAR" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="my_code" property="myCode" jdbcType="VARCHAR" />
+    <result column="recom_code" property="recomCode" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="create_userid" property="createUserid" jdbcType="INTEGER" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="update_userid" property="updateUserid" jdbcType="INTEGER" />
+    <result column="description" property="description" jdbcType="VARCHAR" />
+      <result column="recom_num" property="recomNum" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, login_name, real_name, pass_word, status, my_code, recom_code, create_time, create_userid, 
+    update_time, update_userid, description,recom_num
+  </sql>
+
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterClass="cn.emagsoftware.xfb.pojo.SysUser" >
+    select 
+    <include refid="t_sys_user.Base_Column_List" />
+    from t_sys_user
+    where id = #id:INTEGER#
+  </select>
+
+  <select id="selectByLogin" resultClass="cn.emagsoftware.xfb.pojo.SysUser" parameterClass="cn.emagsoftware.xfb.pojo.SysUser" >
+        SELECT
+			id,
+			login_name loginName,
+			real_name realName,
+			pass_word passWord,
+			status ,
+			recom_code recomCode,
+			recom_num recomNum
+			
+		FROM
+			t_sys_user
+		WHERE
+			login_name = #loginName:VARCHAR# and pass_word=#passWord:VARCHAR#
+  </select>
+  <select id="selectByLoginName" resultMap="BaseResultMap" parameterClass="cn.emagsoftware.xfb.pojo.SysUser" >
+        select
+        <include refid="t_sys_user.Base_Column_List" />
+        from t_sys_user
+        where login_name = #loginName:VARCHAR#
+  </select>
+  <select id="selectByMyCode" resultMap="BaseResultMap" parameterClass="cn.emagsoftware.xfb.pojo.SysUser" >
+        select
+        <include refid="t_sys_user.Base_Column_List" />
+        from t_sys_user
+        where my_code = #recomCode:VARCHAR#
+  </select>
+
+  <delete id="deleteByPrimaryKey" parameterClass="cn.emagsoftware.xfb.pojo.SysUser" >
+    delete from t_sys_user
+    where id = #id:INTEGER#
+  </delete>
+  <insert id="insert" parameterClass="cn.emagsoftware.xfb.pojo.SysUser" >
+		    INSERT INTO t_sys_user (
+								id,
+								login_name,
+								real_name,
+								pass_word,
+								type,
+								recom_code,
+								create_time,
+								create_userid
+								)
+			VALUES
+					(
+						#id:INTEGER#, #loginName:VARCHAR#, #realName:VARCHAR#, #passWord:VARCHAR#, 
+						#type:VARCHAR#, #recomCode:VARCHAR#, now(),#createUserid:INTEGER#
+					)
+  </insert>
+  <insert id="insertSelective" parameterClass="cn.emagsoftware.xfb.pojo.SysUser" >
+    insert into t_sys_user
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        id
+      </isNotNull>
+      <isNotNull prepend="," property="loginName" >
+        login_name
+      </isNotNull>
+      <isNotNull prepend="," property="realName" >
+        real_name
+      </isNotNull>
+      <isNotNull prepend="," property="passWord" >
+        pass_word
+      </isNotNull>
+      <isNotNull prepend="," property="status" >
+        status
+      </isNotNull>
+      <isNotNull prepend="," property="myCode" >
+        my_code
+      </isNotNull>
+      <isNotNull prepend="," property="recomCode" >
+        recom_code
+      </isNotNull>
+      <isNotNull prepend="," property="createTime" >
+        create_time
+      </isNotNull>
+      <isNotNull prepend="," property="createUserid" >
+        create_userid
+      </isNotNull>
+      <isNotNull prepend="," property="updateTime" >
+        update_time
+      </isNotNull>
+      <isNotNull prepend="," property="updateUserid" >
+        update_userid
+      </isNotNull>
+      <isNotNull prepend="," property="description" >
+        description
+      </isNotNull>
+      )
+    </dynamic>
+    values
+    <dynamic prepend="(" >
+      <isNotNull prepend="," property="id" >
+        #id:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="loginName" >
+        #loginName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="realName" >
+        #realName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="passWord" >
+        #passWord:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="status" >
+        #status:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="myCode" >
+        #myCode:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="recomCode" >
+        #recomCode:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="createTime" >
+        #createTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="createUserid" >
+        #createUserid:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="updateTime" >
+        #updateTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="updateUserid" >
+        #updateUserid:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="description" >
+        #description:VARCHAR#
+      </isNotNull>
+      )
+    </dynamic>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterClass="cn.emagsoftware.xfb.pojo.SysUser" >
+    update t_sys_user
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="loginName" >
+        login_name = #loginName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="realName" >
+        real_name = #realName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="passWord" >
+        pass_word = #passWord:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="status" >
+        status = #status:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="myCode" >
+        my_code = #myCode:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="recomCode" >
+        recom_code = #recomCode:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="createTime" >
+        create_time = #createTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="createUserid" >
+        create_userid = #createUserid:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="updateTime" >
+        update_time = #updateTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="updateUserid" >
+        update_userid = #updateUserid:INTEGER#
+      </isNotNull>
+      <isNotNull prepend="," property="description" >
+        description = #description:VARCHAR#
+      </isNotNull>
+    </dynamic>
+    where id = #id:INTEGER#
+  </update>
+  <update id="updateByPrimaryKey" parameterClass="cn.emagsoftware.xfb.pojo.SysUser" >
+    update t_sys_user
+    set login_name = #loginName:VARCHAR#,
+      real_name = #realName:VARCHAR#,
+      pass_word = #passWord:VARCHAR#,
+      status = #status:INTEGER#,
+      my_code = #myCode:VARCHAR#,
+      recom_code = #recomCode:VARCHAR#,
+      create_time = #createTime:TIMESTAMP#,
+      create_userid = #createUserid:INTEGER#,
+      update_time = #updateTime:TIMESTAMP#,
+      update_userid = #updateUserid:INTEGER#,
+      description = #description:VARCHAR#
+    where id = #id:INTEGER#
+  </update>
+  <update id="updatePassWord" parameterClass="cn.emagsoftware.xfb.pojo.SysUser" >
+    update t_sys_user
+    set pass_word = #newPassWord:VARCHAR#
+    where id = #id:INTEGER#
+  </update>
+
+    <update id="updateRealNameByUsrId" parameterClass="cn.emagsoftware.xfb.pojo.SysUser" >
+        update t_sys_user
+        set  real_name = #realName:VARCHAR#
+        where id = #id:INTEGER#
+    </update>
+
+
+    <select id="getUserByRecomCode" resultClass="cn.emagsoftware.xfb.pojo.SysUser" parameterClass="cn.emagsoftware.xfb.pojo.SysUser" >
+        select
+        	id,
+			login_name loginName,
+			real_name realName,
+			pass_word passWord,
+			recom_num recomNum,
+			verify_state verifyState
+        from t_sys_user
+        where login_name = #myCode:VARCHAR#
+    </select>
+	
+    <select id="getRuralBrokerByUserId" resultClass="java.lang.Integer"  parameterClass="cn.emagsoftware.xfb.pojo.SysUser" >
+        select count(1)
+        from t_partner_baseinfo
+        where sys_userid = #id# and user_type=2
+    </select>
+
+    <select id="getCountByRecomCode" resultClass="java.lang.Integer"  parameterClass="cn.emagsoftware.xfb.pojo.SysUser" >
+        select count(1)
+        from t_sys_user
+        where recom_code = #recomCode#
+    </select>
+
+    <update id="updateRecomNum" parameterClass="cn.emagsoftware.xfb.pojo.SysUser" >
+        update t_sys_user
+        set  recom_num = recom_num+1
+        where id = #id:INTEGER#
+    </update>
+    
+    <!-- 校验手机号和身份证号是否注册 -->
+    <select id="getCountBylNCN" resultClass="java.lang.Integer"  parameterClass="cn.emagsoftware.xfb.pojo.SysUser" >
+        select count(1) from t_sys_user su 
+		left join t_member_info mb on su.id = mb.user_id
+		where su.login_name=#loginName:VARCHAR# or mb.card_number=#memberInfo.idNumber:VARCHAR#
+    </select>
+    
+    <!-- 根据登录名修改用户状态 -->
+    <update id="updateStatusByLoginName" parameterClass="cn.emagsoftware.xfb.pojo.SysUser" >
+	    update t_sys_user
+	    <dynamic prepend="set" >
+	      <isNotNull prepend="," property="status" >
+	        status = #status:INTEGER#
+	      </isNotNull>
+	    </dynamic>
+	    where login_name = #loginName:VARCHAR#
+    </update>
+	 
+    <!-- 修改用户审核状态 -->
+    <update id="updateUserState" parameterClass="java.lang.Integer">
+	 		update t_sys_user su set  
+				 su.has_verify = 'A1',
+				 su.verify_state = 'A1'
+			where
+			 su.id = #userId:INTEGER#
+	 </update>
+	 
+    <!-- 修改用户是否需要审批为需要 -->
+    <update id="updateHasVerify" parameterClass="java.lang.Integer">
+	 		update t_sys_user su set  
+				 su.has_verify = 'A1'
+			where
+			 su.id = #userId:INTEGER#
+	 </update>
+	 
+    <!-- 修改用户类型 上班族还是学生 -->
+    <update id="updateUserInfoByUserId" parameterClass="cn.emagsoftware.xfb.pojo.SysUser">
+	 		update t_sys_user   
+			    <dynamic prepend="set" >
+			      <isNotNull prepend="," property="hasVerify" >
+			        has_verify = #hasVerify:VARCHAR#
+			      </isNotNull>
+			      <isNotNull prepend="," property="type" >
+			        type = #type:VARCHAR#
+			      </isNotNull>
+			    </dynamic>
+			where id = #id:INTEGER#
+	 </update>
+	 
+	 <!-- 根据推荐码获取商户信息 -->
+	 <select id="getPorUserByRecomCode" resultClass="cn.emagsoftware.xfb.pojo.SysUser" parameterClass="java.lang.String" >
+        select
+      		u.id,
+			u.login_name loginName,
+			u.real_name realName,
+			u.pass_word passWord,
+			u.recom_num recomNum,
+			u.verify_state verifyState
+        from t_sys_user u Join t_partner_baseinfo p  ON u.id = p.sys_userid
+        where u.login_name = #recomCode#
+    </select>
+	
+	
+	<!-- 校验手机号和身份证号是否匹配 -->
+    <select id="getUserByLoginCard" resultClass="cn.emagsoftware.xfb.pojo.SysUser"  parameterClass="cn.emagsoftware.xfb.pojo.SysUser" >
+         select
+       su.id, su.login_name, su.real_name, su.pass_word, su.status, su.recom_code, 
+    	 su.description,su.recom_num
+        from t_sys_user su
+		left join t_member_info mb on su.id = mb.user_id
+		where su.login_name=#loginName:VARCHAR# AND mb.card_number=#memberInfo.idNumber:VARCHAR#
+    </select>
+</sqlMap>

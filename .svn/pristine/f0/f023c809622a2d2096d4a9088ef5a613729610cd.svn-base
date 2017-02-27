@@ -1,0 +1,79 @@
+/**
+ * @(#)MemberInfoDao.java	1.0	2015-8-12
+ * Copyright 2014 [天尧], Inc. All rights reserved.
+ * Website: http://www.tyiti.com/
+ */
+package cn.tyiti.xfb.dao;
+
+import java.util.Map;
+
+import cn.tyiti.xfb.bojo.MemberInfo;
+import cn.tyiti.xfb.bojo.ProfessionInfo;
+import cn.tyiti.xfb.bojo.VerifyLogInfo;
+import cn.tyiti.xfb.common.IBaseDao;
+
+/**
+ * 提升额度-获取个人信息/提升额度-提交个人信息Dao.
+ * 
+ * @version 1.0 2015-8-12
+ * @author Black
+ */
+public interface MemberInfoDao extends IBaseDao {
+	/**
+	 * 
+	 * 获取个人信息.
+	 * @author Black
+	 * @date 2015-8-12 下午4:55:18
+	 *
+	 * @param memberInfo
+	 * @return
+	 * @throws Exception
+	 */
+	MemberInfo getMemberInfo(MemberInfo memberInfo) throws Exception;
+	
+	/**
+	 * 
+	 * 提交个人信息.
+	 * @author Black
+	 * @date 2015-8-14 上午11:48:17
+	 *
+	 * @param memberInfo
+	 * @return
+	 * @throws Exception
+	 */
+	int saveMemberInfo(MemberInfo memberInfo) throws Exception;
+	
+	/**
+	 * 
+	 * 提交个人信息.
+	 * @author KELLEN
+	 * @date 2015-10-110
+	 * @param map
+	 * @return
+	 * @throws Exception
+	 */
+	int updateCredit(Map<String,Integer> map) throws Exception;
+	
+	/**
+	 * 根据用户ID查询授信拦截地址（商户地址）
+	 * @author shenwu
+	 * @return MemberInfo.city		常住市
+	 */
+	ProfessionInfo getPartnerBaseInfo(String uId) throws Exception;
+	
+	/**
+	 * 地址不相同增加审核日志
+	 * @param verifyLogInfo 审核日志信息
+	 * @return
+	 * @author shenwu
+	 * @throws Exception
+	 */
+	int saveVerifyLogInfo(VerifyLogInfo verifyLogInfo) throws Exception;
+
+	/**
+	 * 自动拦截之后，修改用户状态
+	 * @param uId
+	 * @throws Exception
+	 */
+	int updateUserStatus(Integer uId) throws Exception;
+}

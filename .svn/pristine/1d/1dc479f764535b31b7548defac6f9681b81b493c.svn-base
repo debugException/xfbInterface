@@ -1,0 +1,78 @@
+/**
+ * @(#)MemberInfoService.java	1.0	2015-8-12
+ * Copyright 2014 [天尧], Inc. All rights reserved.
+ * Website: http://www.tyiti.com/
+ */
+package cn.tyiti.xfb.service;
+
+import cn.tyiti.xfb.bojo.CellphoneParameterInfo;
+import cn.tyiti.xfb.bojo.MemberInfo;
+import cn.tyiti.xfb.bojo.ProfessionInfo;
+import cn.tyiti.xfb.bojo.VerifyLogInfo;
+
+/**
+ * 提升额度-获取个人信息/提升额度-提交个人信息 Service.
+ * 
+ * @version 1.0 2015-8-12
+ * @author Black
+ */
+public interface MemberInfoService {
+	/**
+	 * 
+	 * 获取数据.
+	 * @author Black
+	 * @date 2015-8-12 下午4:55:18
+	 *
+	 * @param memberInfo
+	 * @return
+	 * @throws Exception
+	 */
+	MemberInfo getMemberInfo(MemberInfo memberInfo) throws Exception;
+	
+	/**
+	 * 
+	 * 提交个人信息.
+	 * @author Black
+	 * @date 2015-8-14 上午11:48:17
+	 *
+	 * @param memberInfo
+	 * @return
+	 * @throws Exception
+	 */
+	int saveMemberInfo(MemberInfo memberInfo) throws Exception;
+	
+	/**
+	 * 保存头信息，手机相关参数
+	 * @param bankCreditInfo
+	 * @author shenwu
+	 * @return
+	 * @throws Exception
+	 */
+	int saveCellphoneParameterInfo(CellphoneParameterInfo cellphoneParameterInfo) throws Exception;
+	
+	
+	/**
+	 * 根据用户ID查询授信拦截地址（商户地址）
+	 * @param uId
+	 * @author shenwu
+	 * @return MemberInfo.city		常住市
+	 * @throws Exception
+	 */
+	ProfessionInfo getPartnerBaseInfo(String uId) throws Exception;
+	
+	/**
+	 * 地址不相同增加审核日志
+	 * @param verifyLogInfo 审核日志信息
+	 * @author shenwu
+	 * @throws Exception
+	 */
+	int saveVerifyLogInfo(VerifyLogInfo verifyLogInfo) throws Exception;
+
+	/**
+	 * 自动拦截之后，修改用户状态
+	 * @param uId
+	 * @throws Exception
+	 */
+	int updateUserStatus(Integer uId) throws Exception;
+	
+}

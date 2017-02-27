@@ -1,0 +1,22 @@
+package cn.tyiti.xfb.dao;
+
+import cn.tyiti.xfb.bojo.UserInfo;
+
+public interface BlackListDao {
+
+/**
+ * 根据userid查询用户信息
+ * @param userId
+ * @return
+ * @throws Exception
+ */
+	UserInfo getUserInfoByUserId(Integer userId)throws Exception;
+/**
+ * 主表插入数据
+ * @param userInfo
+ * @return
+ * @throws Exception
+ */
+	void addData(UserInfo userInfo)throws Exception;
+
+}

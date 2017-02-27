@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMapConfig PUBLIC "-//ibatis.apache.org//DTD SQL Map Config 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-config-2.dtd">
+
+<sqlMapConfig>
+    <settings cacheModelsEnabled="true" enhancementEnabled="true" lazyLoadingEnabled="true"
+        useStatementNamespaces="true" classInfoCacheEnabled="true" statementCachingEnabled="true" />
+
+    <sqlMap resource="/sql/app/sql_appSys.xml" />
+    <sqlMap resource="/sql/app/sql_credit_model.xml" />
+    <sqlMap resource="/sql/app/sql_email_authinfo.xml" />
+    <sqlMap resource="/sql/app/sql_member_baseinfo.xml" />
+    <sqlMap resource="/sql/app/sql_sina_authinfo.xml" />
+    <sqlMap resource="/sql/app/sql_sys_user.xml" />
+    <sqlMap resource="/sql/app/sql_bill_stage.xml" />
+    <sqlMap resource="/sql/app/sql_jobcert_authinfo.xml" />
+    <sqlMap resource="/sql/app/sql_order_info.xml" />
+    <sqlMap resource="/sql/app/sql_stage_model.xml" />
+    <sqlMap resource="/sql/app/sql_taobao_authinfo.xml" />
+    <sqlMap resource="/sql/app/sql_bluecard_authinfo.xml" />
+    <sqlMap resource="/sql/app/sql_drive_authinfo.xml" />
+    <sqlMap resource="/sql/app/sql_marry_authinfo.xml" />
+    <sqlMap resource="/sql/app/sql_qq_authinfo.xml" />
+    <sqlMap resource="/sql/app/sql_sys_log.xml" />
+    <sqlMap resource="/sql/app/sql_xuexing_authinfo.xml" />
+    <!-- 获取表序列 -->
+    <sqlMap resource="/sql/app/sql_mysql_seq.xml" />
+    <!-- 提升额度-获取数据 -->
+    <sqlMap resource="/sql/tyiti/promoteamount.xml" />
+    <!-- 提升额度-获取个人信息/提升额度-提交个人信息 -->
+    <sqlMap resource="/sql/tyiti/memberinfo.xml" />
+    <!-- 提升额度-获取职业信息/提升额度-提交职业信息 -->
+    <sqlMap resource="/sql/tyiti/professioninfo.xml" />
+    <!-- 提升额度-联系人信息 -->
+    <sqlMap resource="/sql/tyiti/contactinfo.xml" />
+    <!-- 提升额度-银行卡 -->
+    <sqlMap resource="/sql/tyiti/bankcardinfo.xml" />
+    <!-- 提升额度-保存图片数据 -->
+    <sqlMap resource="/sql/tyiti/imageinfo.xml" />
+    <!-- 接口异常记录表 -->
+    <sqlMap resource="/sql/tyiti/interfacelog.xml" />
+    <!-- 交易密码xml-->
+    <sqlMap resource="/sql/tyiti/tradepassword.xml" />
+    
+    <!-- 同步用户到市场版 -->
+    <sqlMap resource="/sql/tyiti/syncdatabase.xml" />
+    <!-- 信用模型表 -->
+    <sqlMap resource="/sql/tyiti/creditmodel.xml" />
+    <!-- 得分记录表 -->
+    <sqlMap resource="/sql/tyiti/scorelog.xml" />
+    <!-- 额度分数换算表 -->
+    <sqlMap resource="/sql/tyiti/quotascore.xml" />
+    <!-- 操作流水表 -->
+    <sqlMap resource="/sql/tyiti/payrecode.xml" />
+    <!-- 个人征信 -->
+    <sqlMap resource="/sql/tyiti/creditInfo.xml" />
+    
+    <!-- 黑名单 映射文件 -->
+    <sqlMap resource="/sql/tyiti/sql_blacklist_result.xml"/>
+    <sqlMap resource="/sql/tyiti/sql_bList_message.xml"/>
+    <sqlMap resource="/sql/tyiti/sql_qlblackinfo_result.xml"/>
+    <sqlMap resource="/sql/tyiti/sql_sybadinfo_result.xml"/>
+    <sqlMap resource="/sql/tyiti/sql_blackList_main.xml"/>
+    
+    <!-- 极光推送映射 -->
+    <sqlMap resource="/sql/tyiti/sql_jpush_record.xml"/>
+    
+</sqlMapConfig>

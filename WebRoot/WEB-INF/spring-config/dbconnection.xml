@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING //DTD BEAN//EN"
+"http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+	<!-- DB MYSQL 数据源 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		destroy-method="close">
+		<property name="driverClass">
+			<value>com.mysql.jdbc.Driver</value>
+		</property>
+			<!-- 测试数据库 -->
+<!-- 		 <property name="jdbcUrl"> -->
+<!--              <value>jdbc:mysql://192.168.17.110:3306/xfbdb_new?useUnicode=true&amp;characterEncoding=utf-8</value> -->
+<!-- 		</property> -->
+<!-- 		<property name="user" value="yanfa" /> -->
+<!-- 		<property name="password" value="yanfa@tyiti.com" /> -->
+		
+		<!-- 开发环境-->
+		<property name="jdbcUrl">
+			<value>jdbc:mysql://192.168.17.110:3306/xfbdb_kaifa?useUnicode=true&amp;characterEncoding=utf-8</value>
+		</property>
+		<property name="user" value="kaifa" />
+		<property name="password" value="kf@xinfenbao.com" />
+
+        <!-- 连接池相关配置-->
+        <property name="minPoolSize" value="10"/>
+        <property name="initialPoolSize" value="20" />
+        <property name="maxPoolSize" value="100"/>
+
+        <!--Mysql将自动断开该 connection的C3P0应对-->
+        <!--如果设为true那么在取得连接的同时将校验连接的有效性。Default: false -->
+        <property name="testConnectionOnCheckin" value="true"/>
+        <property name="automaticTestTable" value="interface_TestTable"/>
+        <property name="idleConnectionTestPeriod" value="18000" />
+        <!--最大空闲时间,60秒内未使用则连接被丢弃。若为0则永不丢弃。Default: 0 -->
+        <property name="maxIdleTime" value="25000"/>
+        <property name="testConnectionOnCheckout" value="true"/>
+	</bean>
+	
+	<!-- DB SQLSERVER数据源  暂未使用，已使用wcf接口和市场版交互  author:Black date:2015-08-05-->
+	<bean id="sqlServer_dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		destroy-method="close">
+		<property name="driverClass">
+			<value>com.microsoft.sqlserver.jdbc.SQLServerDriver</value>
+		</property>
+			<!-- 测试数据库 -->
+		 <property name="jdbcUrl">
+             <value>jdbc:sqlserver://192.168.17.104:1433;databasename=Insight_WS</value>
+		</property>
+		<property name="user" value="sa" />
+		<property name="password" value="sa" />
+
+        <!-- 连接池相关配置-->
+        <property name="minPoolSize" value="10"/>
+        <property name="initialPoolSize" value="20" />
+        <property name="maxPoolSize" value="100"/>
+
+        <!--Mysql将自动断开该 connection的C3P0应对-->
+        <!--如果设为true那么在取得连接的同时将校验连接的有效性。Default: false -->
+        <property name="testConnectionOnCheckin" value="true"/>
+        <property name="automaticTestTable" value="interface_TestTable"/>
+        <property name="idleConnectionTestPeriod" value="18000" />
+        <!--最大空闲时间,60秒内未使用则连接被丢弃。若为0则永不丢弃。Default: 0 -->
+        <property name="maxIdleTime" value="25000"/>
+        <property name="testConnectionOnCheckout" value="true"/>
+	</bean>
+</beans>

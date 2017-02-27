@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="appSys">
+	 <select id="getSysConfig" resultClass="cn.emagsoftware.xfb.pojo.SysConfig" >
+		select detail_key as configKey, detail_value as configValue
+		  from t_sys_dic_detail,t_sys_dic  
+		 where dic_code = 'CLIENT_CONFIG' 
+		   and dic_id=t_sys_dic.id
+		order by t_sys_dic_detail.id 
+	 </select>
+	 <select id="getNewestApp" resultClass="cn.emagsoftware.xfb.pojo.App" parameterClass="java.util.HashMap">
+		select id as appID, app_version as appVersion,app_url as appUrl,app_size as appSize,app_description as appDescription
+		  from t_sys_app   
+		 where app_type = #type# 
+ 		   and app_channel_code = #channelCode#
+		   and app_status=2 
+		order by app_version desc limit 1
+	 </select>
+	 
+	 <select id="getDicDetailByCodekey" parameterClass="java.util.HashMap" 
+	resultClass="java.lang.String">
+		select 
+		       detail_value detailValue
+		  from t_sys_dic_detail
+		 where dic_id in
+		 (select id from t_sys_dic where dic_code  = #dicCode#) 
+		 and detail_key = #dicDetailKey#
+	</select>
+	
+	<insert id="insertAppHeartbeat" parameterClass="java.util.HashMap">
+		insert into t_itf_app_heartbeat(heartbeat_uuid,imei,customer_id,heartbeat_time)
+		                                         value(#uuid#,#imie#,#customerID#,#currentTime#)
+	</insert>
+
+	<insert id="insertTransLog" parameterClass="cn.emagsoftware.xfb.pojo.TransLog">
+		INSERT INTO t_itf_trans_log
+		(imei,
+		platform,
+		request_uri,
+		channel_code,
+		request_time,
+		customer_id)
+		VALUES
+		(#imei#,
+		#platform#,
+		#requestUri#,
+		#channelCode#,
+		current_timestamp(),
+		#customerId#)
+	</insert>
+</sqlMap>

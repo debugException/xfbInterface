@@ -1,0 +1,236 @@
+package cn.emagsoftware.frame.interceptor;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import net.rubyeye.xmemcached.MemcachedClient;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+
+import cn.emagsoftware.frame.bean.BaseRspBean;
+import cn.emagsoftware.frame.log4j.ILog;
+import cn.emagsoftware.frame.log4j.Logger;
+import cn.emagsoftware.utils.AppUtils;
+import cn.emagsoftware.utils.CommonUtils;
+import cn.emagsoftware.utils.Constant;
+import cn.emagsoftware.utils.MD5Util;
+import cn.emagsoftware.utils.json.JsonUtils;
+import cn.emagsoftware.xfb.pojo.SysUser;
+
+@Component
+public class CheckSignValueInterceptor extends HandlerInterceptorAdapter {
+
+	@Logger
+	private static ILog log;
+
+    @Autowired
+    private MemcachedClient memcachedClient;
+    
+	// 不进行拦截地址
+    private static Set<String> ignoreUrl = new HashSet<String>();
+
+    static {
+    	//登录
+        ignoreUrl.add("/customer/login.do");
+        //注册
+        ignoreUrl.add("/customer/registration.do");
+        //找回密码三步
+        ignoreUrl.add("/customer/valid4FindPassword.do");
+        ignoreUrl.add("/customer/validAuth.do");
+        ignoreUrl.add("/customer/resetPassword.do");
+        //获取验证码
+        ignoreUrl.add("/customer/handleVerifCode.do");
+        //更新用户状态 manage中会调用
+        ignoreUrl.add("/customer/updateUserState.do");
+        //获取版本号
+        ignoreUrl.add("/version/getVersion.do");
+        //设置账单状态 各个系统通用
+        ignoreUrl.add("/bill/setBillStatus.do");
+        //查询个人征信信息
+        ignoreUrl.add("/servlet/receiveServlet.do");
+        //微信支付回调通知
+        ignoreUrl.add("/weChatPay/notifyURL.do");
+        ignoreUrl.add("/blackList/queryAndInsert.do");
+        //交易密码设置
+//        ignoreUrl.add("/tradePassword/setTradePassword.do");
+    }
+
+	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+		// 获取URI地址
+		request.setCharacterEncoding("UTF-8");
+		response.setHeader("Content-type", "text/html;charset=UTF-8");  
+		String requestPath = request.getServletPath();
+		log.info(" ------------------进入拦截器 ------------------ requestPath:" + requestPath);
+		//校验请求是否正确
+		boolean isValidReq = false;
+		//安全参数
+		String authentication = request.getHeader("authentication");
+		//用户ID
+		String userId = request.getHeader("userId");
+		//用户密码
+		String password = request.getHeader("password");
+		Map<String, String> authMap = AppUtils.splitPairValues(authentication);
+		//秘钥
+		String secretKey = authMap.get("secretKey");
+		//时间戳
+		String timestamp = authMap.get("timestamp");
+		//手机系统类型
+		String sysType = request.getHeader("sysType");
+		//系统版本号
+		String sysVersion = request.getHeader("sysVersion");
+		//返回参数
+		BaseRspBean brb = new BaseRspBean();
+		
+		//打印请求参数开始-------------------
+		List<String> temp = new ArrayList<String>();
+		temp.add("_");
+		String requestRawValue = AppUtils.createRequestSignRawValue(request, temp);
+		log.info("requestRawValue={" + requestRawValue + "}");
+		//打印请求参数结束-------------------
+		
+		if("/version/getVersion.do".equals(request.getServletPath())){
+			return true;
+		}
+		
+		if("/servlet/receiveServlet.do".equals(request.getServletPath())){
+			return true;
+		}
+		
+		if("/weChatPay/notifyURL.do".equals(request.getServletPath())){
+			return true;
+		}
+		
+		if("/blackList/queryAndInsert.do".equals(request.getServletPath())){
+			return true;
+		}
+		
+		if("/customer/resetPassword.do".equals(request.getServletPath())){
+			String flag = request.getParameter("flag");
+			if ((!("").equals(flag))&&("xfbManage").equals(flag)) {
+				return true;
+			}
+		}
+		
+		
+		
+		//判断app版本
+		String versions="";  //兼容版本
+		String version="";  //更新版本
+		String[] versionArr = null;
+		if(StringUtils.isEmpty(sysType)||StringUtils.isEmpty(sysVersion)){
+			isValidReq = false;
+			brb.setCodeAndMsg("9988", "您使用的版本过低，请更新最新版本,感谢您使用信分宝！");
+		}else{
+			if(sysType.equals("Android")){
+				versions = CommonUtils.getPropertiesValue("config", "app.version.android.current");
+				version = CommonUtils.getPropertiesValue("config", "app.version.android.updated");
+				versionArr = versions.split("#");
+				//如果已经更新至最新版本，返回true
+				if(version.equals(sysVersion)){
+					isValidReq = true;
+				}else{
+					for (String tmp:versionArr) {
+						if(tmp.equals(sysVersion)){
+							isValidReq = true;
+							break;
+						}
+					}
+					if (!isValidReq) {
+						brb.setCodeAndMsg("9988", "您使用的版本过低，请更新最新版本"+version+",感谢您使用信分宝！");
+					}
+				}
+			}else if(sysType.equals("IOS")){
+				versions = CommonUtils.getPropertiesValue("config", "app.version.ios.current");
+				version = CommonUtils.getPropertiesValue("config", "app.version.ios.updated");
+				versionArr = versions.split("#");
+				String[] versionIOS = version.split("#");
+				//如果已经更新至最新版本，返回true
+				if(sysVersion.equals(versionIOS[0])||sysVersion.equals(versionIOS[1])){
+					isValidReq = true;
+				}else{
+					for (String tmp:versionArr) {
+						if(tmp.equals(sysVersion)){
+							isValidReq = true;
+							break;
+						}
+					}
+					if (!isValidReq) {
+						brb.setCodeAndMsg("9988", "您使用的版本过低，请更新最新版本"+versionIOS[1]+",感谢您使用信分宝！");
+					}
+				}
+			}
+		}
+		/*
+		 * 授信任的请求地址， 校验请求的秘钥
+		 * */
+		if (isValidReq) {
+			if(ignoreUrl.contains(request.getServletPath())){
+				//空校验
+				if(StringUtils.isEmpty(secretKey) || StringUtils.isEmpty(timestamp) ){
+					isValidReq = false;
+					brb.setCodeAndMsg("2104","您使用的版本过低，请更新最新版本"+CommonUtils.getPropertiesValue("config","app.version")+",感谢您使用信分宝！");
+				} else {
+					String tempSecretKey = MD5Util.getMD5String(timestamp+"passw0rd!"+userId);
+					//校验密钥
+					boolean is_secret = secretKey.equals(tempSecretKey);
+					if(is_secret){
+						isValidReq = true;
+					} else {
+						isValidReq = false;
+						//非法设置
+						brb.setCodeAndMsg("2003","非法请求");
+					}
+				}
+			} else {
+				
+				//空校验
+				if(StringUtils.isEmpty(userId) || StringUtils.isEmpty(password) 
+						||StringUtils.isEmpty(secretKey) || StringUtils.isEmpty(timestamp) ){
+					isValidReq = false;
+					brb.setCodeAndMsg("2004","请求头参数中存在空值");
+				} else {
+					
+					String tempSecretKey = MD5Util.getMD5String(timestamp+"passw0rd!"+userId);
+					//校验密钥
+					boolean is_secret = secretKey.equals(tempSecretKey);
+					//从缓存中校验用户名和密码 目前沟通结果是用户永远不会失效，所以暂时不考虑校验用户名和密码 后面会校验  
+					//已校验 date:2015-08-25 author:Black
+					String userKey = Constant.CACHE_USER_KEY + userId;
+					SysUser sysUser = (SysUser) memcachedClient.get(userKey);
+					if(sysUser != null){
+						boolean is_user = password.equalsIgnoreCase(sysUser.getPassWord()); 
+						if(is_secret && is_user) {
+							log.info("CheckSignValueInterceptor.preHandle: ------success------");
+							isValidReq = true;
+						} else{
+							isValidReq = false;
+							//非法设置
+							brb.setCodeAndMsg("6777","已在另一台设备上更改密码，请重新登录");
+						}
+					} else {
+						//重新登录提示
+						brb.setCodeAndMsg("6789","请重新登录");
+					}
+				}
+				
+			}
+		}
+		
+		//验证是否需要返回错误消息
+		if(!isValidReq){
+			//返回消息
+			response.getWriter().write(JsonUtils.getJSONString(brb));
+		}
+		return isValidReq;
+	}
+}

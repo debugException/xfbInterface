@@ -1,0 +1,70 @@
+package cn.tyiti.xfb.utils.blacklist;   
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
+
+import cn.tyiti.xfb.utils.DocumentUtil;
+
+/** 
+ * 创建时间：2015-11-27 上午9:59:13  
+ * 项目名称：xfbInterface  
+ * @author liminghua  
+ * @version 1.0   
+ * @since JDK 1.6
+ * 文件名称：TestD.java  
+ * 类说明：  
+ */
+public class TestDoc {
+	public static void main(String[] args) throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException {
+		String dov3 ="<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<DATA><MESSAGE><STATUS>0</STATUS><VALUE>记录为空</VALUE>" +
+				"</MESSAGE>" +
+				"<RESULTS>NPvMmHNW6BPLj3HRgKSu6ELOBRnWWVV6+L3P6fMNqKd3Y8xxkLOe7G/i9gSnSy5Ols8AcZzU8P7UNB3JUrNUrfvtDCPH4jHdneDA2E9BgkNpogHrzMVIwvA0Xn2c571t0+BtsJ9ZPkpcDAufFjPZT402AHFbfbIiPEWkEOeOkfBpl1hohjXb+MR0dEgZp4Qjb6VF3IDPE/o9f5r5W/zrT00thwbc+YjcK3/WBpnzI0VsxFUg4OdMiwcRqr3/D9gbGof14mmlEGFaNmMUvkHz8wAm1lCJ+uPNCF63abrY2h2OyiYG8zAk/pP8qnhm+ZVIqf/HklMG1GYGB6qwRs6eew==</RESULTS>" +
+				"</DATA>";
+		
+		String dov = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><DATA><MESSAGE><STATUS>0</STATUS><VALUE>处理成功！</VALUE></MESSAGE>" +
+				"<RESULTS>yHKPanBICJRcIgetfhcBvyQ3mkXDGPYn7etJqOvhGNRdNNznvwzUhRt0mflKoR9MlllujCgHFH6g1I/uwQ83oeb+wNZdZF3YC4ID4PICcoao0haTwarIuGODDwv3xO02iZxg4vTx/IG+bYuKSlCztV0RltbLdFQ/LdCrtzI9T1BnCpY03fiIBByeACKwoLheBz47/96QH4URLlm5GsAD3K3ibFz7p9VVv93Jn2Et/t3ha49Nb75+DLGGrfwywRmdreJkXP92IIZ6fYzCeSUYPDzA6qCh5t1G09FL+bNaKTeo4oVrUr4KZ8r79txOKBE5U+bjLqJvaX/Ykl+P6RVknM2MelEFUJk4ysPLSKkcwuNGWZNdj/Jcj1XBq7cQkyfdWFMZIs9aynZQkq8jz/2EGa5b28L1RjGJviJlOnAruwJC/y/K70qv8VNq4BS8JaqDe0hdBj2YLXeV8RinNd1+pQocO/8NhcBJ76gaV1A9PmA4zCyE1aw7NrmVhFxdORQdgj+z1PavuZMyAcBck861y6gZeX+yEqZizaU7ww052gqyXWGPR8CpCZ/FU6T1X5dE3xK4h/Pu3zBjKGVA8iZNj3MikqV5CEHEJuesPoDnI26s+1ps9LyRq3c8wDlTai01slHTp8KstrYEzS4yAO6aqUNsohcJWyDIV7ph8fZw9amZMTu6lrFTCoqk5JGAZqu+rsqnpPP3qV9K7sx9laQOLzpF1ElJ5sdHh4Wru++UJa161JrvSPZnmFKOxFvAJqOzfJJ3xOTi7lfktP8rbydzf0C9ZsoIT1u+d1RVpWZqhunRn/2L1fJx9gslPzopr7BmAtRrDabpqVlAzSKuRx+GFRgzn31o3BTljJ2VOKOCdGplIDkBeIo5EdHyPzKVSS5/z5FORMcAmV+apInmlRMpoCYhLBgPDvDPRr3/yP3ostlSqEsrxGmu8L+R5gq9UF9w9X44ceH7vt/G5/P4R0ayc4Sv04LCOP5Tc+1oGXhY5JLL5aIx0OD3CmOkjxl3mKXSugkptc5pRWC936s1c7GAWzxqw7bdn4xjfB8vpc31Fd+hjObfGLUYSz+8IvCiedirFyGc3SkYW87OUCQHW5C2XJVrq/mBUH9Wc5Hk8QKSHGE+VGYOKIaCi9y/JtJX9PVPiOFaVL2LvElkfl9hvNFeckCuJI3n7ImyclYnRSQVEaC5so5j0r9CGEmu8K42i7+P+1b0vNhhdtzYHq7DQ3q7ztcSXkzV9Y0WIYm4PMBt5CrAgkUeLr2Inwsnw84YrwidrEtDoVZBYZu272acf7/ETpFi2vjIl0Urr2GK2/FpkGU45VoSJs0eaaSoko4rzhtzar5RPy1MPvRRHB1OPz9QyA==</RESULTS>" +
+				"</DATA>";
+		
+	//	String dov = "<DATA><MESSAGE><STATUS>0</STATUS><VALUE>处理成功</VALUE></MESSAGE><RESULTS>jQcDZXUtNlt/wOGFwNTLll5AAkZcUZyeSpAzJmkvIoySCq8WyBhJIhoDBSBPPLuwoq0SYTlpzVH4yNCwLpO5Gd9vrdPews8rp9PrixEccbmyBOxLvltZJrpyiqPyDz2xie7rtnb+AMbXBz3TRl3LKXcEs8waQvVH3ezJdIoxeJY=</RESULTS></DATA>";
+			/*String dov = "<RESULT><IDCODE>612501198903070030</IDCODE><NAME>余良锋</NAME><MOBILE>13055099411</MOBILE><EMAIL>chiefeng@163.com</EMAIL>" +
+					"<BADINFOS><BADINFO><MATCH>[\"national_id\",\"name\",\"cellphone\"]</MATCH><REASON>0</REASON><REASON_DESCRIPTION>借款违约</REASON_DESCRIPTION>" +
+							"<CREATE_DATE_TYPE>小于12个月</CREATE_DATE_TYPE><AMOUNT_TYPE>小于5000元</AMOUNT_TYPE><OVER_DUE_TYPE>未知</OVER_DUE_TYPE>" +
+							"<LEGAL_STATUS>无</LEGAL_STATUS></BADINFO><BADINFO><MATCH>[\"email\"]</MATCH><REASON>0</REASON>" +
+									"<REASON_DESCRIPTION>借款违约</REASON_DESCRIPTION><CREATE_DATE_TYPE>未知</CREATE_DATE_TYPE>" +
+									"<AMOUNT_TYPE>大于等于10000元</AMOUNT_TYPE><OVER_DUE_TYPE>未知</OVER_DUE_TYPE><LEGAL_STATUS>无</LEGAL_STATUS></BADINFO>" +
+									"</BADINFOS></RESULT>";*/
+		
+		
+		//String dov = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><DATA><MESSAGE><STATUS>0</STATUS><VALUE>处理成功</VALUE></MESSAGE><RESULTS>W5E/snpUxr+XdeACLgStHXgcFGOTmA2aMjDGHFOV2kzTug3gfMMcBXKxA3jk8JQTSONwnB8nc/bQtVHSNqk1pBIs+jui1ZDMwrtuV07Q7PqlqbnsDB3knEnwD90IErA9gHm+2Nd/5ipeuULZSDlsTqgwEQVuRl6C2pw70BFkzSA=</RESULTS></DATA>";
+		Document doc2;
+		try {
+			doc2 = DocumentHelper.parseText(dov);
+			
+			String resultsENText = DocumentUtil.getDecryptStrByNodePath(doc2,"/DATA/RESULTS");
+			
+			//DocumentUtil.decryptByPrivateKey(((Element) doc2.selectSingleNode("/DATA/RESULTS/tteees")).getText());
+			
+			//document.selectSingleNode(path)).getText()
+			System.out.println(resultsENText);
+		} catch (DocumentException e) {
+			e.printStackTrace();
+		}
+		
+		
+	}
+
+}
+ 
